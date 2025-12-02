@@ -1,0 +1,177 @@
+{
+  "character": {
+    "id": "f77ef0cc-f8ac-4c42-b891-2d538a1f4849",
+    "name": "Simple cool design human character ",
+    "prompt": "Simple cool design human character ",
+    "size": {
+      "width": 160,
+      "height": 160
+    },
+    "template_id": "mannequin",
+    "directions": 8,
+    "view": "high top-down",
+    "created_at": "2025-10-07T14:49:39.418596+00:00"
+  },
+  "frames": {
+    "rotations": {
+      "south": "rotations/south.png",
+      "south-east": "rotations/south-east.png",
+      "east": "rotations/east.png",
+      "north-east": "rotations/north-east.png",
+      "north": "rotations/north.png",
+      "north-west": "rotations/north-west.png",
+      "west": "rotations/west.png",
+      "south-west": "rotations/south-west.png"
+    },
+    "animations": {
+      "walk": {
+        "west": [
+          "animations/walk/west/frame_000.png",
+          "animations/walk/west/frame_001.png",
+          "animations/walk/west/frame_002.png",
+          "animations/walk/west/frame_003.png",
+          "animations/walk/west/frame_004.png",
+          "animations/walk/west/frame_005.png"
+        ],
+        "north": [
+          "animations/walk/north/frame_000.png",
+          "animations/walk/north/frame_001.png",
+          "animations/walk/north/frame_002.png",
+          "animations/walk/north/frame_003.png",
+          "animations/walk/north/frame_004.png",
+          "animations/walk/north/frame_005.png"
+        ],
+        "south": [
+          "animations/walk/south/frame_000.png",
+          "animations/walk/south/frame_001.png",
+          "animations/walk/south/frame_002.png",
+          "animations/walk/south/frame_003.png",
+          "animations/walk/south/frame_004.png",
+          "animations/walk/south/frame_005.png"
+        ],
+        "south-west": [
+          "animations/walk/south-west/frame_000.png",
+          "animations/walk/south-west/frame_001.png",
+          "animations/walk/south-west/frame_002.png",
+          "animations/walk/south-west/frame_003.png",
+          "animations/walk/south-west/frame_004.png",
+          "animations/walk/south-west/frame_005.png"
+        ],
+        "south-east": [
+          "animations/walk/south-east/frame_000.png",
+          "animations/walk/south-east/frame_001.png",
+          "animations/walk/south-east/frame_002.png",
+          "animations/walk/south-east/frame_003.png",
+          "animations/walk/south-east/frame_004.png",
+          "animations/walk/south-east/frame_005.png"
+        ],
+        "north-east": [
+          "animations/walk/north-east/frame_000.png",
+          "animations/walk/north-east/frame_001.png",
+          "animations/walk/north-east/frame_002.png",
+          "animations/walk/north-east/frame_003.png",
+          "animations/walk/north-east/frame_004.png",
+          "animations/walk/north-east/frame_005.png"
+        ],
+        "east": [
+          "animations/walk/east/frame_000.png",
+          "animations/walk/east/frame_001.png",
+          "animations/walk/east/frame_002.png",
+          "animations/walk/east/frame_003.png",
+          "animations/walk/east/frame_004.png",
+          "animations/walk/east/frame_005.png"
+        ],
+        "north-west": [
+          "animations/walk/north-west/frame_000.png",
+          "animations/walk/north-west/frame_001.png",
+          "animations/walk/north-west/frame_002.png",
+          "animations/walk/north-west/frame_003.png",
+          "animations/walk/north-west/frame_004.png",
+          "animations/walk/north-west/frame_005.png"
+        ]
+      }
+    }
+  },
+  "keypoints": {
+    "rotations": {
+      "south": null,
+      "south-east": null,
+      "east": null,
+      "north-east": null,
+      "north": null,
+      "north-west": null,
+      "west": null,
+      "south-west": null
+    },
+    "animations": {
+      "walk": {
+        "west": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "north": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "south": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "south-west": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "south-east": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "north-east": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "east": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "north-west": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    }
+  },
+  "export_version": "1.0",
+  "export_date": "2025-10-07T15:08:30.798837"
+}

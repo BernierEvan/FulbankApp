@@ -1,0 +1,151 @@
+﻿<UserControl x:Class="FulbankApp.View.TransferView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FulbankApp.View"
+             xmlns:v="clr-namespace:FulbankApp.View"
+             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <!-- HEADER -->
+        <Grid Background="#1A4A8F" Height="70" VerticalAlignment="Top">
+            <TextBlock Text="Virement bancaire"
+                       VerticalAlignment="Center"
+                       Margin="20,0"
+                       Foreground="White"
+                       FontSize="24"
+                       FontWeight="Bold"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
+                <TextBlock Text="Evan"
+                           Foreground="White"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+                <Ellipse Width="35" Height="35" Fill="White" Opacity="0.85"/>
+            </StackPanel>
+        </Grid>
+
+
+        <!-- MAIN CONTENT -->
+        <Grid Margin="0,90,0,40"  >
+            <!-- LEFT PANEL — Compte -->
+            <Border Background="#E6EEF8"
+                    CornerRadius="15"
+                    Padding="20"
+                    Margin="20"
+                    Width="280"
+                    VerticalAlignment="Stretch"
+                    BorderBrush="#C2D4EA"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Compte débiteur"
+                               FontWeight="Bold"
+                               Foreground="#1A4A8F"
+                               FontSize="18"/>
+
+                    <TextBlock Text="Evan Dupont"
+                               Margin="0,20,0,0"
+                               FontSize="16"/>
+
+                    <TextBlock Text="IBAN : FR76 1234 5678 9012 3456 7890 123"
+                               TextWrapping="Wrap"
+                               Margin="0,5"/>
+
+                    <TextBlock Text="Solde disponible"
+                               Margin="0,20,0,0"
+                               FontSize="14"
+                               Foreground="#1A4A8F"/>
+
+                    <TextBlock Text="2 350,00 €"
+                               FontSize="28"
+                               FontWeight="Bold"
+                               Foreground="#1A4A8F"/>
+
+                    <Button Content="Changer de compte"
+                            Margin="0,30,0,0"
+                            Background="#1A4A8F"
+                            Foreground="White"
+                            Padding="10"
+                            BorderThickness="0"
+                            />
+                </StackPanel>
+            </Border>
+
+
+            <!-- RIGHT PANEL — Formulaire -->
+            <Border
+                    Background="White"
+                    CornerRadius="15"
+                    Padding="30"
+                    Margin="20,20,20,-24"
+                    BorderBrush="#D9DFE7"
+                    BorderThickness="1">
+                <StackPanel>
+
+                    <TextBlock Text="Détails du virement"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#1A4A8F"
+                               Margin="0,0,0,20"/>
+
+                    <!-- Beneficiary -->
+                    <TextBlock Text="Nom du bénéficiaire" Margin="0,10,0,5"/>
+                    <TextBox Height="35"/>
+
+                    <TextBlock Text="IBAN du bénéficiaire" Margin="0,15,0,5"/>
+                    <TextBox Height="35" TextChanged="TextBox_TextChanged"/>
+
+                    <!-- Amount -->
+                    <TextBlock Text="Montant (€)" Margin="0,15,0,5"/>
+                    <TextBox Height="40" FontSize="18" FontWeight="Bold"/>
+
+                    <!-- Reason -->
+                    <TextBlock Text="Motif (optionnel)" Margin="0,15,0,5"/>
+                    <TextBox Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+
+                    <!-- Date -->
+                    <TextBlock Text="Planification" Margin="0,20,0,5"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <RadioButton Content="Immédiat" IsChecked="True" Margin="0,0,20,0"/>
+                        <RadioButton Content="Planifié"/>
+                    </StackPanel>
+
+                    <DatePicker Margin="0,5" />
+
+                    <!-- Confirmation -->
+                    <Border Margin="0,30,0,20"
+                            Padding="15"
+                            Background="#F3F7FC"
+                            CornerRadius="10"
+                            BorderBrush="#D9DFE7"
+                            BorderThickness="1">
+                        <TextBlock Text="Vous allez envoyer un virement depuis votre compte vers le bénéficiaire indiqué."
+                                   TextWrapping="Wrap"
+                                   Foreground="#1A4A8F"/>
+                    </Border>
+
+                    <!-- Submit Button -->
+                    <Button Content="Valider le virement"
+                            Background="#1A4A8F"
+                            Foreground="White"
+                            Padding="12"
+                            FontSize="16"
+                            BorderThickness="0"
+                            />
+                    <TextBox Height="35"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- SECURITY FOOTER -->
+        <TextBlock Text="Connexion sécurisée · SSL activé"
+                   FontSize="12"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Top"
+                   Foreground="Gray"
+                   Margin="0,410,0,0"/>
+    </Grid>
+</UserControl>

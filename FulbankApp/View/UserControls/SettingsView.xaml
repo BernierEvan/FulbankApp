@@ -1,0 +1,153 @@
+﻿<UserControl x:Class="FulbankApp.View.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FulbankApp.View"
+             xmlns:v="clr-namespace:FulbankApp.View"
+             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DockPanel Margin="0,0,0,-464">
+
+        <!-- HEADER -->
+        <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">
+            <Grid>
+                <TextBlock Text="Paramètres"
+                           Foreground="White" FontSize="24" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="20,0,0,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="Evan" Foreground="White" FontSize="16"
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Ellipse Width="36" Height="36" Fill="White" Opacity="0.9"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- FOOTER -->
+        <TextBlock DockPanel.Dock="Bottom"
+                   Text="© 2025 Banque sécurisée – Tous droits réservés"
+                   FontSize="12" Foreground="Gray"
+                   HorizontalAlignment="Center" Margin="0,6"/>
+
+        <!-- CONTENU PRINCIPAL -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="18">
+            <StackPanel Orientation="Vertical" Margin="0,0,0,20">
+
+                <!-- Section : Compte utilisateur -->
+                <Border Background="White" CornerRadius="12" Padding="18"
+                        Margin="0,0,0,16" BorderBrush="#D9DFE7" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Mon Profil"
+                                   FontSize="18" FontWeight="Bold" Foreground="#1A4A8F"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Ellipse Width="70" Height="70" Fill="#E4ECF7"/>
+                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Evan Dupont" FontSize="16" FontWeight="Bold"/>
+                                <TextBlock Text="evan.dupont@example.com" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button Content="Modifier mes informations"
+                                Width="210" Margin="0,14,0,0"
+                                Background="#1A4A8F" Foreground="White" BorderThickness="0"
+                                Height="38" />
+                    </StackPanel>
+                </Border>
+
+
+                <!-- Section : Sécurité -->
+                <Border Background="White" CornerRadius="12" Padding="18"
+                        Margin="0,0,0,16" BorderBrush="#D9DFE7" BorderThickness="1">
+                    <StackPanel>
+
+                        <TextBlock Text="Sécurité"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="#1A4A8F"/>
+
+                        <!-- Changer mot de passe -->
+                        <StackPanel Margin="0,14,0,0">
+                            <TextBlock Text="Mot de passe" FontWeight="SemiBold"/>
+                            <Button Content="Changer mon mot de passe"
+                                    Width="210" Height="34" Margin="0,8,0,0"
+                                    Background="#1A4A8F" Foreground="White" BorderThickness="0"
+                                    />
+                        </StackPanel>
+
+                        <!-- Authentification -->
+                        <StackPanel Margin="0,18,0,0">
+                            <TextBlock Text="Authentification à deux facteurs"
+                                       FontWeight="SemiBold"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <ToggleButton Width="50" Height="24" Background="#1A4A8F"/>
+                                <TextBlock Text="Activer la 2FA" VerticalAlignment="Center"
+                                           Margin="8,0,0,0"/>
+                                <TextBlock Text="{Binding SECURITY_2FA}" FontSize="14"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Sessions -->
+                        <StackPanel Margin="0,18,0,0">
+                            <TextBlock Text="Sessions actives" FontWeight="SemiBold"/>
+                            <TextBlock Text="• Windows PC – app bancaire"
+                                       Margin="0,6,0,0"/>
+                            <TextBlock Text="• iPhone – App mobile"
+                                       Margin="0,4,0,0"/>
+                            <Button Content="Déconnecter toutes les sessions"
+                                    Margin="0,10,0,0" Height="34" Width="240"
+                                    Background="#FBF4F4" Foreground="#B55C5C"
+                                    BorderBrush="#E9D2D2" />
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
+
+                <!-- Section : Notifications -->
+                <Border Background="White" CornerRadius="12" Padding="18"
+                        BorderThickness="1" BorderBrush="#D9DFE7">
+                    <StackPanel>
+
+                        <TextBlock Text="Notifications"
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="#1A4A8F"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <ToggleButton Width="50" Height="24" Background="#1A4A8F"/>
+                            <StackPanel Margin="10,0,0,0">
+                                <TextBlock Text="Notifications par email"/>
+                                <TextBlock Text="{Binding EMAIL_NOTIFICATION}" FontSize="14"/>
+                                <TextBlock Text="Pour chaque transfert, opération et alerte."
+                                           FontSize="12" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <ToggleButton Width="50" Height="24" Background="#1A4A8F"/>
+                            <StackPanel Margin="10,0,0,0">
+                                <TextBlock Text="Notifications SMS" FontSize="14"/>
+                                <TextBlock Text="{Binding SMS_NOTIFICATION}" FontSize="14"/>
+                                <TextBlock Text="Pour les opérations sensibles uniquement."
+                                           FontSize="12" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <ToggleButton Width="50" Height="24" Background="#1A4A8F"/>
+                            <StackPanel Margin="10,0,0,0">
+                                <TextBlock Text="Alertes de connexion" FontSize="14"/>
+                                <TextBlock Text="{Binding CONNECTION_ALERT}" FontSize="14"/>
+                                <TextBlock Text="Alerte à chaque connexion distante."
+                                           FontSize="12" Foreground="Gray"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

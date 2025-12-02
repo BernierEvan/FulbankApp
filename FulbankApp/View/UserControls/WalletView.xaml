@@ -1,0 +1,190 @@
+﻿<UserControl x:Class="FulbankApp.View.WalletView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FulbankApp.View"
+             xmlns:v="clr-namespace:FulbankApp.View"
+             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DockPanel>
+
+        <!-- HEADER -->
+        <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">
+            <Grid>
+                <TextBlock Text="Wallet Crypto"
+                           Foreground="White" FontSize="24" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="20,0,0,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="Evan" Foreground="White" FontSize="16"
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Ellipse Width="36" Height="36" Fill="White" Opacity="0.9"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- FOOTER -->
+        <TextBlock DockPanel.Dock="Bottom" Text="Données crypto mises à jour · API sécurisée"
+                   FontSize="12" Foreground="Gray" Margin="0,8"
+                   HorizontalAlignment="Center"/>
+
+        <!-- CONTENT -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="18">
+            <StackPanel Orientation="Vertical">
+
+                <!-- TOTAL BALANCE -->
+                <Border Background="#1A4A8F" CornerRadius="12"
+                        Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Valeur Totale du Portefeuille"
+                                   Foreground="White" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="12 482,91 €" FontSize="34"
+                                   Foreground="White" FontWeight="ExtraBold"
+                                   Margin="0,6,0,0"/>
+                        <TextBlock Text="+ 3.8% aujourd’hui"
+                                   Foreground="#C6FFD4" FontSize="14"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- SECTION Coins -->
+                <TextBlock Text="Mes Cryptos" FontSize="18"
+                           FontWeight="Bold" Foreground="#1A4A8F"/>
+
+                <WrapPanel Margin="0,10,0,14">
+
+                    <!-- BTC CARD -->
+                    <Border Width="280" Background="White" Margin="6"
+                            Padding="14" CornerRadius="12"
+                            BorderBrush="#D9DFE7" BorderThickness="1">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="38" Height="38" Fill="#F7931A"/>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Bitcoin" FontWeight="Bold"/>
+                                    <TextBlock Text="BTC" Foreground="Gray" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Text="0.154 BTC" FontSize="20"
+                                       FontWeight="Bold" Margin="0,12,0,0"/>
+                            <TextBlock Text="7 200 €" FontWeight="SemiBold"
+                                       Margin="0,4,0,0"/>
+                            <TextBlock Text="+ 2.5%" Foreground="#2ECC71"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ETH CARD -->
+                    <Border Width="280" Background="White" Margin="6"
+                            Padding="14" CornerRadius="12"
+                            BorderBrush="#D9DFE7" BorderThickness="1">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="38" Height="38" Fill="#627EEA"/>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Ethereum" FontWeight="Bold"/>
+                                    <TextBlock Text="ETH" Foreground="Gray" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Text="2.01 ETH" FontSize="20"
+                                       FontWeight="Bold" Margin="0,12,0,0"/>
+                            <TextBlock Text="4 850 €" FontWeight="SemiBold"
+                                       Margin="0,4,0,0"/>
+                            <TextBlock Text="+ 5.1%" Foreground="#2ECC71"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- USDT CARD -->
+                    <Border Width="280" Background="White" Margin="6"
+                            Padding="14" CornerRadius="12"
+                            BorderBrush="#D9DFE7" BorderThickness="1">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="38" Height="38" Fill="#26A17B"/>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Tether" FontWeight="Bold"/>
+                                    <TextBlock Text="USDT" Foreground="Gray" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Text="1 300 USDT" FontSize="20"
+                                       FontWeight="Bold" Margin="0,12,0,0"/>
+                            <TextBlock Text="1 300 €" FontWeight="SemiBold"
+                                       Margin="0,4,0,0"/>
+                            <TextBlock Text="Stable" Foreground="Gray"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                </WrapPanel>
+
+                <!-- SECTION : ENVOYER / RECEVOIR -->
+                <TextBlock Text="Actions Rapides" FontSize="18"
+                           FontWeight="Bold" Foreground="#1A4A8F" Margin="0,10,0,6"/>
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+
+                    <Button Content="Envoyer"
+                            Width="180" Height="44" Margin="0,0,12,0"
+                            Background="#1A4A8F" 
+                            Foreground="White" BorderThickness="0"/>
+
+                    <Button Content="Recevoir"
+                            Width="180" Height="44"
+                            Background="#E6EEF8" 
+                            Foreground="#1A4A8F" BorderBrush="#C2D4EA"/>
+                </StackPanel>
+
+
+                <!-- SECTION Transactions récentes -->
+                <TextBlock Text="Transactions récentes"
+                           FontSize="18" FontWeight="Bold"
+                           Foreground="#1A4A8F" Margin="0,22,0,6"/>
+
+                <StackPanel>
+
+                    <!-- Transaction 1 -->
+                    <Border Background="White" CornerRadius="10"
+                            Padding="14" Margin="0,0,0,8"
+                            BorderBrush="#D9DFE7" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="34" Height="34" Fill="#F7931A"/>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Achat BTC" FontWeight="SemiBold"/>
+                                <TextBlock Text="+ 0.02 BTC (940 €)" Foreground="Gray"/>
+                            </StackPanel>
+                            <TextBlock Text="Hier"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Foreground="Gray"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Transaction 2 -->
+                    <Border Background="White" CornerRadius="10"
+                            Padding="14" Margin="0,0,0,8"
+                            BorderBrush="#D9DFE7" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="34" Height="34" Fill="#627EEA"/>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Swap ETH → USDT" FontWeight="SemiBold"/>
+                                <TextBlock Text="- 0.3 ETH" Foreground="Gray"/>
+                            </StackPanel>
+                            <TextBlock Text="3j" Foreground="Gray"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+    </DockPanel>
+</UserControl>

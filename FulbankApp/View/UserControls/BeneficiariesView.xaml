@@ -1,0 +1,144 @@
+﻿<UserControl x:Class="FulbankApp.View.BeneficiariesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FulbankApp.View"
+             xmlns:v="clr-namespace:FulbankApp.View"
+             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+
+        <!-- HEADER -->
+        <Grid Background="#1A4A8F" Height="70" VerticalAlignment="Top">
+            <TextBlock Text="Gestion des bénéficiaires"
+                       VerticalAlignment="Center"
+                       Margin="20,0"
+                       Foreground="White"
+                       FontSize="24"
+                       FontWeight="Bold"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
+                <TextBlock Text="Evan"
+                           Foreground="White"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+                <Ellipse Width="35" Height="35" Fill="White" Opacity="0.85"/>
+            </StackPanel>
+        </Grid>
+
+
+        <!-- MAIN CONTENT -->
+        <Grid Margin="0,90,0,40">
+
+            <!-- LEFT — Add New Beneficiary -->
+            <Border Background="White"
+                    CornerRadius="15"
+                    Padding="25"
+                    Margin="20"
+                    BorderBrush="#D9DFE7"
+                    BorderThickness="1">
+                <StackPanel>
+
+                    <TextBlock Text="Ajouter un bénéficiaire"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#1A4A8F"
+                               Margin="0,0,0,20"/>
+
+                    <!-- Name -->
+                    <TextBlock Text="Nom du bénéficiaire" Margin="0,10,0,5"/>
+                    <TextBox Height="35"/>
+
+                    <!-- IBAN -->
+                    <TextBlock Text="IBAN" Margin="0,15,0,5"/>
+                    <TextBox Height="35"/>
+
+                    <!-- Note -->
+                    <TextBlock Text="Note (optionnel)" Margin="0,15,0,5"/>
+                    <TextBox Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+
+                    <!-- Button -->
+                    <Button Content="Ajouter le bénéficiaire"
+                            Background="#1A4A8F"
+                            Foreground="White"
+                            Padding="12"
+                            FontSize="16"
+                            BorderThickness="0"
+                            Margin="0,20,0,0"/>
+                </StackPanel>
+            </Border>
+
+
+            <!-- RIGHT — Beneficiaries List -->
+            <Border Grid.Column="1"
+                    Background="White"
+                    CornerRadius="15"
+                    Padding="20"
+                    Margin="20"
+                    BorderBrush="#D9DFE7"
+                    BorderThickness="1">
+                <DockPanel>
+
+                    <!-- Title -->
+                    <TextBlock Text="Liste des bénéficiaires"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#1A4A8F"
+                               DockPanel.Dock="Top"
+                               Margin="0,0,0,20"/>
+
+                    <!-- Search -->
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <TextBox Width="250"
+                                 Height="32"
+                                 Margin="0,0,10,0"/>
+                        <Button Content="Rechercher"
+                                Background="#1A4A8F"
+                                Foreground="White"
+                                Padding="8"
+                                BorderThickness="0"
+                                />
+                    </StackPanel>
+
+                    <!-- DataGrid -->
+                    <DataGrid x:Name="BeneficiariesGrid"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              Background="White"
+                              BorderThickness="0"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="None"
+                              RowHeight="40"
+                              Margin="0,10,0,0">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nom" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="IBAN" Binding="{Binding IBAN}" Width="*"/>
+                            <DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="2*"/>
+
+                            <!-- Delete Button -->
+                            <DataGridTemplateColumn Header="Supprimer" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Supprimer"
+                                                Background="#C62828"
+                                                Foreground="White"
+                                                Padding="5"
+                                                BorderThickness="0"
+                                                />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+        </Grid>
+            
+    </Grid>
+</UserControl>

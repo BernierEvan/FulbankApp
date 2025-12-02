@@ -1,0 +1,164 @@
+﻿<UserControl x:Class="FulbankApp.View.ConvertView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FulbankApp.View"
+             xmlns:v="clr-namespace:FulbankApp.View"
+             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DockPanel>
+
+        <!-- HEADER -->
+        <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">
+            <Grid>
+                <TextBlock Text="Convertir" Foreground="White" FontSize="24" FontWeight="Bold"
+                           VerticalAlignment="Center" Margin="20,0,0,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="Evan" Foreground="White" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Ellipse Width="36" Height="36" Fill="White" Opacity="0.9"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- FOOTER -->
+        <TextBlock DockPanel.Dock="Bottom" Text="Connexion sécurisée · SSL activé" FontSize="12"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray" Margin="0,8"/>
+
+        <!-- CONTENU PRINCIPAL : DockPanel (gauche fixe, droite flexible) -->
+        <DockPanel LastChildFill="True" Margin="18">
+
+            <!-- PANNEAU GAUCHE — Compte & Solde (largeur fixe) -->
+            <Border DockPanel.Dock="Left" Width="300" Background="#E6EEF8" CornerRadius="12" Padding="18"
+                    BorderBrush="#C2D4EA" BorderThickness="1" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="Compte débiteur" FontSize="18" FontWeight="Bold" Foreground="#1A4A8F"/>
+                    <TextBlock Text="Evan Dupont" Margin="0,12,0,0" FontSize="16"/>
+                    <TextBlock Text="IBAN : FR76 1234 5678 9012 3456 7890 123" TextWrapping="Wrap" Margin="0,8,0,0"/>
+
+                    <TextBlock Text="Solde disponible" Margin="0,20,0,0" FontSize="14" Foreground="#1A4A8F"/>
+                    <TextBlock Text="2 350,00 €" FontSize="28" FontWeight="Bold" Foreground="#1A4A8F"/>
+
+                    <Separator Margin="0,18,0,18"/>
+
+                    <TextBlock Text="Méthode de versement" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <ComboBox Height="34">
+                        <ComboBoxItem>Débit immédiat</ComboBoxItem>
+                        <ComboBoxItem>Prélèvement</ComboBoxItem>
+                    </ComboBox>
+
+                    <Button Content="Gérer mes comptes" Margin="0,18,0,0" Padding="10"
+                            Background="#1A4A8F" Foreground="White" BorderThickness="0" />
+                </StackPanel>
+            </Border>
+
+            <!-- PANNEAU DROIT — Convertisseur (flex) -->
+            <Border Background="White" CornerRadius="12" Padding="22" BorderBrush="#D9DFE7" BorderThickness="1">
+                <StackPanel>
+
+                    <!-- Titre -->
+                    <TextBlock Text="Convertisseur Fiat → Crypto" FontSize="20" FontWeight="Bold" Foreground="#1A4A8F" Margin="0,0,0,10"/>
+
+                    <!-- Barre d'information (taux estimé) -->
+                    <Border Background="#F3F7FC" Padding="10" CornerRadius="8" Margin="0,0,0,14" BorderBrush="#E6EDF7" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                            <TextBlock Text="Taux estimé" FontWeight="SemiBold" Foreground="#1A4A8F"/>
+                            <TextBlock Text=" : 1 EUR = 0.000036 BTC" Margin="8,0,0,0" FontWeight="Bold"/>
+                            <TextBlock Text=" • Frais : 0.5%" Foreground="Gray" Margin="12,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Section Montant & Devise source -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
+                        <StackPanel Width="420">
+                            <TextBlock Text="Montant (EUR)" Margin="0,0,0,6"/>
+                            <TextBox Height="44" FontSize="18" FontWeight="SemiBold" VerticalContentAlignment="Center" />
+                            <TextBlock Text="Montant maximum : 2 350,00 €" Foreground="Gray" FontSize="12" Margin="0,6,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="18,0,0,0" VerticalAlignment="Bottom">
+                            <TextBlock Text="De" Margin="0,0,0,6"/>
+                            <ComboBox Width="160" Height="34">
+                                <ComboBoxItem>EUR</ComboBoxItem>
+                                <ComboBoxItem>USD</ComboBoxItem>
+                                <ComboBoxItem>GBP</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Section Crypto cible -->
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,6" VerticalAlignment="Center">
+                        <StackPanel Width="420">
+                            <TextBlock Text="Crypto cible" Margin="0,0,0,6"/>
+                            <ComboBox Height="44" VerticalAlignment="Center">
+                                <ComboBoxItem>Bitcoin (BTC)</ComboBoxItem>
+                                <ComboBoxItem>Ethereum (ETH)</ComboBoxItem>
+                                <ComboBoxItem>USDT (ERC-20)</ComboBoxItem>
+                                <ComboBoxItem>Cardano (ADA)</ComboBoxItem>
+                            </ComboBox>
+                            <TextBlock Text="Montant estimé en crypto s'affichera ici" Foreground="Gray" FontSize="12" Margin="0,6,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="18,0,0,0" VerticalAlignment="Bottom">
+                            <TextBlock Text="Réseau" Margin="0,0,0,6"/>
+                            <ComboBox Width="160" Height="34">
+                                <ComboBoxItem>BTC (On-chain)</ComboBoxItem>
+                                <ComboBoxItem>ERC-20</ComboBoxItem>
+                                <ComboBoxItem>BEP-20</ComboBoxItem>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Options avancées -->
+                    <Expander Header="Options avancées" Margin="0,10,0,6">
+                        <StackPanel Margin="6">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6">
+                                <TextBlock Text="Limite de slippage" Width="160" VerticalAlignment="Center"/>
+                                <TextBox Width="120" Height="30" VerticalContentAlignment="Center" Text="1.0 %" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6">
+                                <TextBlock Text="Date d'exécution" Width="160" VerticalAlignment="Center"/>
+                                <DatePicker Width="160" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- Récapitulatif -->
+                    <Border Background="#FBFEFF" Padding="12" CornerRadius="8" Margin="0,12,0,18" BorderBrush="#E6EDF7" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Récapitulatif" FontWeight="SemiBold" Foreground="#1A4A8F"/>
+                            <TextBlock Text="Vous enverrez : 100,00 € → ~0.0036 BTC (frais inclus)" Margin="0,6,0,0"/>
+                            <TextBlock Text="Délai estimé : 10–30 minutes" Foreground="Gray" FontSize="12" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Boutons d'action -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Annuler" Width="120" Height="40" Margin="0,0,10,0" Background="#F3F5F9" BorderBrush="#D9DFE7" />
+                        <Button Content="Convertir maintenant" Width="200" Height="40"
+                                Background="#1A4A8F" Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                BorderThickness="0" />
+                    </StackPanel>
+
+                    <!-- Liste rapide des paires populaires (wrap) -->
+                    <TextBlock Text="Paires populaires" Margin="0,20,0,6" FontWeight="SemiBold" Foreground="#1A4A8F"/>
+                    <WrapPanel ItemHeight="36" ItemWidth="220" Margin="0,6,0,0">
+                        <Border Padding="8" CornerRadius="8" Background="#F3F7FC" Margin="4">
+                            <TextBlock Text="EUR → BTC • 0.000036" />
+                        </Border>
+                        <Border Padding="8" CornerRadius="8" Background="#F3F7FC" Margin="4">
+                            <TextBlock Text="EUR → ETH • 0.00055" />
+                        </Border>
+                        <Border Padding="8" CornerRadius="8" Background="#F3F7FC" Margin="4">
+                            <TextBlock Text="EUR → USDT • 1.00" />
+                        </Border>
+                    </WrapPanel>
+
+                </StackPanel>
+            </Border>
+
+        </DockPanel>
+
+    </DockPanel>
+</UserControl>
