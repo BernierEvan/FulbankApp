@@ -590,18 +590,18 @@
                                         VerticalAlignment="Center" 
                                         Margin="0,0,30,0"/>
 
-                                <Button Content="Bank Accounts" Command="{Binding NavigateCommand}" CommandParameter="BankAccounts" Style="{StaticResource NavButtonStyle}"  Tag="BankAccounts" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Wallet" Command="{Binding NavigateCommand}" CommandParameter="Wallet" Style="{StaticResource NavButtonStyle}"  Tag="Wallet" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Make a Transfer" Command="{Binding NavigateCommand}" CommandParameter="Transfer" Style="{StaticResource NavButtonStyle}"  Tag="Transfer" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Convert" Command="{Binding NavigateCommand}" CommandParameter="Convert" Style="{StaticResource NavButtonStyle}"  Tag="Help" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Beneficiaries" Command="{Binding NavigateCommand}" CommandParameter="Beneficiaries" Style="{StaticResource NavButtonStyle}"  Tag="Beneficiaries" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Bank Accounts" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="BankAccounts" Style="{StaticResource NavButtonStyle}"  Tag="BankAccounts" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Wallet" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Wallet" Style="{StaticResource NavButtonStyle}"  Tag="Wallet" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Make a Transfer" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Transfer" Style="{StaticResource NavButtonStyle}"  Tag="Transfer" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Convert" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Convert" Style="{StaticResource NavButtonStyle}"  Tag="Convert" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Beneficiaries" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Beneficiaries" Style="{StaticResource NavButtonStyle}"  Tag="Beneficiaries" FontSize="28" Margin="0,0,30,0"/>
 
 
                             </StackPanel>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
-                                <Button Content="⚙️ Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings" Style="{StaticResource NavButtonStyle}" Tag="Settings" Padding="15,0" FontSize="28"/>
+                                <Button Content="⚙️ Settings" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Settings" Style="{StaticResource NavButtonStyle}" Tag="Settings" Padding="15,0" FontSize="28"/>
 
                                 <ComboBox Width="180"
                                         Height="50"

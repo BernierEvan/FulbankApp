@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using FulbankApp.ViewModels;
 
 namespace FulbankApp.View
 {
@@ -799,10 +800,7 @@ namespace FulbankApp.View
 
         #region Navigation
 
-        private void NavigateButton_Click(object sender, MouseEventArgs e)
-        {
-            
-        }
+
 
         private void ExecuteNavigation()
         {
@@ -810,6 +808,41 @@ namespace FulbankApp.View
             MessageBox.Show("Navigation exécutée (Code-Behind)");
         }
 
+        private void NavigateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var main = Application.Current.MainWindow as MainWindow;
+            if (main == null) return;
+
+            var btn = sender as Button;
+            string key = btn.Tag.ToString();  // ← récupère "BankAccounts", "Wallet", etc.
+
+            switch (key)
+            {
+                case "BankAccounts":
+                    main.Content = new BankAccountView();
+                    break;
+
+                case "Wallet":
+                    main.Content = new WalletView();
+                    break;
+
+                case "MakeATransfer":
+                    main.Content = new TransferView();
+                    break;
+
+                case "Convert":
+                    main.Content = new ConvertView();
+                    break;
+
+                case "Beneficiaries":
+                    main.Content = new BeneficiariesView();
+                    break;
+
+                case "Settings":
+                    main.Content = new SettingsView();
+                    break;
+            }
+        }
         #endregion
     }
 }

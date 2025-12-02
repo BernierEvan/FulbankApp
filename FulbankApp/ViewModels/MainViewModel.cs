@@ -31,7 +31,7 @@ namespace FulbankApp.ViewModels
         public MainViewModel()
         {
             // Initialiser la première vue (ex: Login)
-            CurrentViewModel = new LoginViewModel();
+            CurrentViewModel = new HomeViewModel();
 
             // La commande de navigation est ici
             NavigateCommand = new RelayCommand<string>(ExecuteNavigation);
