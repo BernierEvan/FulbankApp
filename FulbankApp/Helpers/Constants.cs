@@ -63,6 +63,8 @@ namespace FulbankApp.Helpers
         #region File Paths
         public const string CHARACTERS_BASE_PATH = "C:\\Users\\BERNIER\\source\\repos\\MaximeHenault\\FULBANK\\Fulbank\\assets\\characters";
         public const string DEFAULT_MALE_SKIN = "default_male";
+        public const string DEFAULT_MALE_SKIN_TEST = "/assets/characters/default_male/idle/idle_down.png";
+
         public const string DEFAULT_FEMALE_SKIN = "default_female";
         public const string THREE_PIECE_MAN_SKIN = "three_piece_man";
         public const string SAD_EMPLOYEE_SKIN = "sad_employee";

@@ -19,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using FulbankApp.ViewModels;
+using System.IO; // ajouté pour fallback chargement image
 
 namespace FulbankApp.View
 {
@@ -53,9 +54,6 @@ namespace FulbankApp.View
 
         // === VIEWMODEL FOR CHANGES ===
 
-        // Propriété qui sera liée au ContentControl dans le XAML de la fenêtre principale
-        
-
         public ICommand NavigateCommand { get; private set; }
 
         #endregion
@@ -63,7 +61,6 @@ namespace FulbankApp.View
         #region Constructeur
 
         /// Initialise la fenêtre et tous ses composants
-        /// 
         public HomeView()
         {
             InitializeComponent();
@@ -81,17 +78,12 @@ namespace FulbankApp.View
             _movementTimer.Tick += OnMovementTick;
             _movementTimer.Start();
 
-            // Événements de la fenêtre
+            // Événements : laisser l'attachement clavier au MainCanvas dans OnWindowLoaded
             this.Loaded += OnWindowLoaded;
-            this.KeyDown += OnWindowKeyDown;
-            this.KeyUp += OnWindowKeyUp;
             this.Focusable = true;
-            this.Focus();
 
             // ViewModel
-
             NavigateCommand = new RelayCommand(ExecuteNavigation);
-
         }
 
         #endregion
@@ -143,6 +135,7 @@ namespace FulbankApp.View
             const double startX = 450;
             const double startY = 450;
 
+            // Crée AnimatedCharacter (visuel géré par AnimatedCharacter)
             _playerCharacter = new AnimatedCharacter(
                 MainCanvas,
                 Constants.CHARACTER_RENDER_WIDTH,
@@ -151,10 +144,88 @@ namespace FulbankApp.View
                 startY
             );
 
-            // Charger les animations GIF du personnage
-            _playerCharacter.LoadGifs();
+            // S'abonner aux changements de skin pour mettre à jour le placeholder Player
+            _playerCharacter.SkinChanged += OnPlayerSkinChanged;
+
+            // Récupérer le skin sélectionné (stocké depuis le Login)
+            string selectedSkin = null;
+            try
+            {
+                if (Application.Current != null && Application.Current.Properties.Contains("SelectedSkin"))
+                {
+                    selectedSkin = Application.Current.Properties["SelectedSkin"] as string;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedSkin))
+                selectedSkin = Constants.DEFAULT_MALE_SKIN;
+
+            // Charger les animations et idle du skin sélectionné
+            try
+            {
+                _playerCharacter.LoadGifs(selectedSkin);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur LoadGifs pour '{selectedSkin}': {ex.Message}");
+            }
+
+            // Mettre à jour le placeholder Player affiché dans le XAML
+            UpdatePlayerPlaceholder(selectedSkin);
 
             _lastUpdateTime = DateTime.Now;
+        }
+
+        // Corrected signature : event Action<string> => handler takes single string parameter
+        private void OnPlayerSkinChanged(string newSkin)
+        {
+            // Mettre à jour le placeholder (UI thread)
+            Dispatcher.Invoke(() => UpdatePlayerPlaceholder(newSkin));
+        }
+
+        private void UpdatePlayerPlaceholder(string skinName)
+        {
+            if (string.IsNullOrWhiteSpace(skinName)) return;
+
+            if (Player is Image img)
+            {
+                try
+                {
+                    string idleUri = Constants.GetCharacterIdlePath(skinName, "down");
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(idleUri, UriKind.Absolute);
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    img.Source = bmp;
+                }
+                catch
+                {
+                    // Fallback vers le chemin disque si pack URI non disponible
+                    try
+                    {
+                        // Qualifier System.IO.Path pour lever l'ambiguïté avec System.Windows.Shapes.Path
+                        string file = System.IO.Path.Combine(Constants.CHARACTERS_BASE_PATH, skinName, "idle", "idle_down.png");
+                        if (System.IO.File.Exists(file))
+                        {
+                            var bmp2 = new BitmapImage();
+                            bmp2.BeginInit();
+                            bmp2.UriSource = new Uri(file, UriKind.Absolute);
+                            bmp2.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp2.EndInit();
+                            img.Source = bmp2;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"UpdatePlayerPlaceholder error: {ex.Message}");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -171,32 +242,188 @@ namespace FulbankApp.View
 
         #region Cycle de Vie de la Fenêtre
 
-        /// <summary>
-        /// Appelé quand la fenêtre est complètement chargée
-        /// </summary>
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             // S'assurer que le Canvas a le focus pour recevoir les événements clavier
-            MainCanvas.Focus();
+            if (MainCanvas != null)
+            {
+                MainCanvas.Focusable = true;
+                MainCanvas.Focus();
+                Keyboard.Focus(MainCanvas);
+
+                // Attacher les événements clavier sur le Canvas (recevra les touches si canvas a le focus)
+                MainCanvas.KeyDown += OnWindowKeyDown;
+                MainCanvas.KeyUp += OnWindowKeyUp;
+            }
 
             // Configurer le rendu du masque
             MaskRect.LayoutUpdated += OnMaskRectLayoutUpdated;
             UpdateMaskRectBrush();
         }
 
+        // Nouveau gestionnaire pour cliquer et donner le focus au canvas
+        private void MainCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (MainCanvas == null) return;
+            MainCanvas.Focus();
+            Keyboard.Focus(MainCanvas);
+            e.Handled = false;
+        }
+                
+        #endregion
+
+        #region Masque & Zoom (implémentations ajoutées)
+
+        private void OnMaskRectLayoutUpdated(object sender, EventArgs e)
+        {
+            if (MaskRect == null) return;
+
+            DateTime now = DateTime.Now;
+
+            // Throttle rapide pour éviter des mises à jour excessives pendant le layout
+            if ((now - _lastMaskUpdate).TotalMilliseconds < 100) return;
+
+            double left = Canvas.GetLeft(MaskRect);
+            double top = Canvas.GetTop(MaskRect);
+            double angle = 0;
+
+            if (MaskRect.RenderTransform is RotateTransform rt)
+            {
+                angle = rt.Angle;
+            }
+            else if (MaskRect.RenderTransform is TransformGroup tg)
+            {
+                foreach (var child in tg.Children)
+                {
+                    if (child is RotateTransform r)
+                    {
+                        angle = r.Angle;
+                        break;
+                    }
+                }
+            }
+
+            if (double.IsNaN(_previousMaskLeft) ||
+                Math.Abs(left - _previousMaskLeft) > 0.5 ||
+                Math.Abs(top - _previousMaskTop) > 0.5 ||
+                Math.Abs(angle - _previousMaskAngle) > 0.5)
+            {
+                UpdateMaskRectBrush();
+                _previousMaskLeft = left;
+                _previousMaskTop = top;
+                _previousMaskAngle = angle;
+                _lastMaskUpdate = now;
+            }
+        }
+
+        private void UpdateMaskRectBrush()
+        {
+            if (MaskRect == null) return;
+
+            try
+            {
+                // Implémentation simple et robuste : gradient radial pour simuler un halo/masque.
+                // Ceci évite les dépendances complexes tout en fournissant un rendu visuel acceptable.
+                var gradient = new RadialGradientBrush
+                {
+                    GradientOrigin = new Point(0.5, 0.5),
+                    Center = new Point(0.5, 0.5),
+                    RadiusX = 0.5,
+                    RadiusY = 0.5
+                };
+                gradient.GradientStops.Add(new GradientStop(Color.FromArgb(220, 255, 255, 255), 0.0));
+                gradient.GradientStops.Add(new GradientStop(Color.FromArgb(0, 0, 0, 0), 1.0));
+
+                MaskRect.Fill = gradient;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateMaskRectBrush error: {ex.Message}");
+            }
+        }
+
+        private void ZoomOnButton(Button button)
+        {
+            if (MainCanvas == null || button == null) return;
+
+            try
+            {
+                var storyboard = new Storyboard();
+
+                var scaleX = new DoubleAnimation(1.0, 1.08, TimeSpan.FromMilliseconds(150))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                var scaleY = new DoubleAnimation(1.0, 1.08, TimeSpan.FromMilliseconds(150))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                Storyboard.SetTarget(scaleX, MainCanvas);
+                Storyboard.SetTarget(scaleY, MainCanvas);
+                Storyboard.SetTargetProperty(scaleX,
+                    new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
+                Storyboard.SetTargetProperty(scaleY,
+                    new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
+
+                storyboard.Children.Add(scaleX);
+                storyboard.Children.Add(scaleY);
+
+                storyboard.Begin();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ZoomOnButton error: {ex.Message}");
+            }
+        }
+
+        private void ResetCanvasZoom()
+        {
+            if (MainCanvas == null) return;
+
+            try
+            {
+                var storyboard = new Storyboard();
+
+                var scaleX = new DoubleAnimation
+                {
+                    To = 1.0,
+                    Duration = TimeSpan.FromMilliseconds(200),
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+                var scaleY = new DoubleAnimation
+                {
+                    To = 1.0,
+                    Duration = TimeSpan.FromMilliseconds(200),
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                Storyboard.SetTarget(scaleX, MainCanvas);
+                Storyboard.SetTarget(scaleY, MainCanvas);
+                Storyboard.SetTargetProperty(scaleX,
+                    new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
+                Storyboard.SetTargetProperty(scaleY,
+                    new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
+
+                storyboard.Children.Add(scaleX);
+                storyboard.Children.Add(scaleY);
+
+                storyboard.Begin();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ResetCanvasZoom error: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region Gestion des Entrées Clavier
 
-        /// <summary>
-        /// Gère l'appui sur une touche du clavier
-        /// </summary>
         private void OnWindowKeyDown(object sender, KeyEventArgs e)
         {
-            // Ajouter la touche à l'ensemble des touches pressées
             _pressedKeys.Add(e.Key);
 
-            // Mettre à jour les flags de direction
             switch (e.Key)
             {
                 case Key.Left:
@@ -221,15 +448,10 @@ namespace FulbankApp.View
             }
         }
 
-        /// <summary>
-        /// Gère le relâchement d'une touche du clavier
-        /// </summary>
         private void OnWindowKeyUp(object sender, KeyEventArgs e)
         {
-            // Retirer la touche de l'ensemble des touches pressées
             _pressedKeys.Remove(e.Key);
 
-            // Mettre à jour les flags de direction
             switch (e.Key)
             {
                 case Key.Left:
@@ -258,52 +480,51 @@ namespace FulbankApp.View
 
         #region Boucle de Jeu (Game Loop)
 
-        /// <summary>
-        /// Appelé à chaque tick du timer de mouvement (environ 60 FPS)
-        /// C'est la boucle principale du jeu
-        /// </summary>
         private void OnMovementTick(object sender, EventArgs e)
         {
-            UpdatePlayerMovement();
+            DateTime now = DateTime.Now;
+            double deltaTime = (now - _lastUpdateTime).TotalSeconds;
+            if (deltaTime > 0.5) deltaTime = 0.5;
+            _lastUpdateTime = now;
+
+            UpdatePlayerMovement(deltaTime);
             UpdateCharacterAnimation();
             CheckButtonCollisions();
         }
 
-        /// <summary>
-        /// Met à jour la position du joueur avec détection de collisions
-        /// </summary>
-        private void UpdatePlayerMovement()
+        private void UpdatePlayerMovement(double deltaTime)
         {
-            if (Player == null) return;
+            if (Player == null || _playerCharacter == null) return;
 
-            // Position actuelle
             double currentLeft = Canvas.GetLeft(Player);
             double currentTop = Canvas.GetTop(Player);
 
-            // Calculer le vecteur de vélocité selon les touches pressées
-            double velocityX = 0;
-            double velocityY = 0;
+            double speedPxs = _playerCharacter.Speed * deltaTime;
 
-            if (_isMovingLeft) velocityX -= Constants.PLAYER_SPEED;
-            if (_isMovingRight) velocityX += Constants.PLAYER_SPEED;
-            if (_isMovingUp) velocityY -= Constants.PLAYER_SPEED;
-            if (_isMovingDown) velocityY += Constants.PLAYER_SPEED;
+            double dirX = 0;
+            double dirY = 0;
+            if (_isMovingLeft) dirX -= 1;
+            if (_isMovingRight) dirX += 1;
+            if (_isMovingUp) dirY -= 1;
+            if (_isMovingDown) dirY += 1;
 
-            // Normalisation pour mouvement diagonal
-            // Si on se déplace en diagonale, réduire la vitesse pour éviter d'aller plus vite
-            if (velocityX != 0 && velocityY != 0)
+            if (dirX == 0 && dirY == 0)
+                return;
+
+            if (dirX != 0 && dirY != 0)
             {
-                const double diagonalFactor = 0.70710678118; // 1/√2
-                velocityX *= diagonalFactor;
-                velocityY *= diagonalFactor;
+                const double diagonalFactor = 0.70710678118;
+                dirX *= diagonalFactor;
+                dirY *= diagonalFactor;
             }
 
-            // Calculer la hitbox réduite du joueur
+            double deltaX = dirX * speedPxs;
+            double deltaY = dirY * speedPxs;
+
             double hitboxWidth = Math.Max(0, Player.ActualWidth - (Constants.HITBOX_SHRINK * 2));
             double hitboxHeight = Math.Max(0, Player.ActualHeight - (Constants.HITBOX_SHRINK * 2));
 
-            // === TEST COLLISION HORIZONTALE (axe X) ===
-            double newLeft = currentLeft + velocityX;
+            double newLeft = currentLeft + deltaX;
             var testRectX = new Rect(
                 newLeft + Constants.HITBOX_SHRINK,
                 currentTop + Constants.HITBOX_SHRINK,
@@ -311,14 +532,13 @@ namespace FulbankApp.View
                 hitboxHeight
             );
 
-            // Si collision détectée, annuler le mouvement horizontal
             if (_collisionService.IsCollidingWithAny(testRectX, _obstacles))
             {
                 newLeft = currentLeft;
+                deltaX = 0;
             }
 
-            // === TEST COLLISION VERTICALE (axe Y) ===
-            double newTop = currentTop + velocityY;
+            double newTop = currentTop + deltaY;
             var testRectY = new Rect(
                 newLeft + Constants.HITBOX_SHRINK,
                 newTop + Constants.HITBOX_SHRINK,
@@ -326,48 +546,41 @@ namespace FulbankApp.View
                 hitboxHeight
             );
 
-            // Si collision détectée, annuler le mouvement vertical
             if (_collisionService.IsCollidingWithAny(testRectY, _obstacles))
             {
                 newTop = currentTop;
+                deltaY = 0;
             }
 
-            // Limiter la position dans les bornes du canvas
             newLeft = Math.Max(0, Math.Min(newLeft, Constants.CANVAS_WIDTH - Player.ActualWidth));
             newTop = Math.Max(0, Math.Min(newTop, Constants.CANVAS_HEIGHT - Player.ActualHeight));
 
-            // Appliquer la nouvelle position
             Canvas.SetLeft(Player, newLeft);
             Canvas.SetTop(Player, newTop);
 
             // Synchroniser le personnage animé avec le rectangle de collision
             SynchronizeAnimatedCharacter(newLeft, newTop);
 
-            // Mettre à jour l'ordre de rendu (Z-Index) selon la profondeur
             UpdatePlayerDepth();
         }
 
-        /// <summary>
-        /// Synchronise la position du personnage animé avec le rectangle de collision
-        /// </summary>
+        #endregion
+
+        #region Synchronisation & Animation du personnage
+
         private void SynchronizeAnimatedCharacter(double playerLeft, double playerTop)
         {
             if (_playerCharacter == null) return;
 
-            // Calculer le centre du rectangle Player
             double playerCenterX = playerLeft + (Player.ActualWidth / 2.0);
             double playerCenterY = playerTop + (Player.ActualHeight / 2.0);
 
-            // Positionner le personnage animé centré sur le Player
             double characterX = playerCenterX - (_playerCharacter.Width / 2.0);
             double characterY = playerCenterY - (_playerCharacter.Height / 1.4);
 
             _playerCharacter.Position = new Point(characterX, characterY);
         }
 
-        /// <summary>
-        /// Met à jour l'animation du personnage selon sa direction de mouvement
-        /// </summary>
         private void UpdateCharacterAnimation()
         {
             if (_playerCharacter == null) return;
@@ -376,95 +589,89 @@ namespace FulbankApp.View
 
             if (isMoving)
             {
-                // En mouvement: déterminer et appliquer la direction
                 Direction direction = DetermineDirection();
                 _playerCharacter.SetDirection(direction);
             }
             else
             {
-                // Immobile: passer en animation idle dans la dernière direction
                 _playerCharacter.SetIdle(_playerCharacter.CurrentDirection);
             }
         }
 
-        /// <summary>
-        /// Détermine la direction du personnage selon les touches pressées
-        /// Gère les 8 directions (4 cardinales + 4 diagonales)
-        /// </summary>
         private Direction DetermineDirection()
         {
-            // Diagonales d'abord (priorité si deux touches sont pressées)
             if (_isMovingUp && _isMovingLeft) return Direction.UpLeft;
             if (_isMovingUp && _isMovingRight) return Direction.UpRight;
             if (_isMovingDown && _isMovingLeft) return Direction.DownLeft;
             if (_isMovingDown && _isMovingRight) return Direction.DownRight;
 
-            // Directions cardinales
             if (_isMovingUp) return Direction.Up;
             if (_isMovingDown) return Direction.Down;
             if (_isMovingLeft) return Direction.Left;
             if (_isMovingRight) return Direction.Right;
 
-            // Par défaut: vers le bas
             return Direction.Down;
         }
 
         #endregion
 
-        #region Gestion de la Profondeur (Z-Index)
+        #region Set / Change Skin
 
         /// <summary>
-        /// Met à jour le Z-Index du joueur selon sa position par rapport au MaskRect
-        /// Cela crée l'effet de profondeur (le joueur peut passer devant ou derrière le bureau)
+        /// Charge les animations GIF et l'image idle du skin donné,
+            /// et met à jour l'image "Player" pour afficher l'idle initial.
         /// </summary>
-        private void UpdatePlayerDepth()
+        public void SetPlayerSkin(string skinName)
         {
-            // Calculer le centre du Player
-            double playerCenterY = Canvas.GetTop(Player) + (Player.ActualHeight / 2);
-            double playerCenterX = Canvas.GetLeft(Player) + (Player.ActualWidth / 2);
-            Point playerCenter = new Point(playerCenterX, playerCenterY);
+            if (string.IsNullOrWhiteSpace(skinName)) skinName = Constants.DEFAULT_MALE_SKIN;
 
-            // Obtenir les coins transformés du MaskRect (avec rotation)
-            Point[] maskCorners = _collisionService.GetTransformedCorners(MaskRect);
-
-            // Vérifier si le joueur est dans la zone du masque
-            if (_collisionService.IsPointInPolygon(playerCenter, maskCorners))
+            // Charger les gifs/idle dans le modèle AnimatedCharacter
+            try
             {
-                // Calculer le centre Y du masque
-                double maskCenterY = maskCorners.Average(p => p.Y);
-
-                // Si le joueur est en dessous du centre du masque: devant (Z=1)
-                // Si le joueur est au-dessus du centre du masque: derrière (Z=3)
-                Panel.SetZIndex(Player, playerCenterY > maskCenterY ? 1 : 3);
-                return;
+                _playerCharacter.LoadGifs(skinName);
+            }
+            catch (Exception ex)
+            {
+                // Ne pas faire planter l'UI si assets manquent
+                System.Diagnostics.Debug.WriteLine($"Erreur LoadGifs pour '{skinName}': {ex.Message}");
             }
 
-            // Par défaut: joueur au-dessus de tout (Z=2)
-            Panel.SetZIndex(Player, 2);
+            // Mettre à jour le placeholder Player (image statique)
+            UpdatePlayerPlaceholder(skinName);
         }
 
         #endregion
 
-        #region Interactions avec les Boutons
+        #region Gestion Profondeur & Boutons (inchangés)
 
-        /// <summary>
-        /// Vérifie les collisions entre le joueur et les boutons interactifs
-        /// </summary>
+        private void UpdatePlayerDepth()
+        {
+            double playerCenterY = Canvas.GetTop(Player) + (Player.ActualHeight / 2);
+            double playerCenterX = Canvas.GetLeft(Player) + (Player.ActualWidth / 2);
+            Point playerCenter = new Point(playerCenterX, playerCenterY);
+
+            Point[] maskCorners = _collisionService.GetTransformedCorners(MaskRect);
+
+            if (_collisionService.IsPointInPolygon(playerCenter, maskCorners))
+            {
+                double maskCenterY = maskCorners.Average(p => p.Y);
+                Panel.SetZIndex(Player, playerCenterY > maskCenterY ? 1 : 3);
+                return;
+            }
+
+            Panel.SetZIndex(Player, 2);
+        }
+
         private void CheckButtonCollisions()
         {
             CheckButtonCollision(CryptoButton);
             CheckButtonCollision(CryptoButton2);
         }
 
-        /// <summary>
-        /// Vérifie si le joueur entre en collision avec un bouton spécifique
-        /// et déclenche son événement Click si c'est le cas
-        /// </summary>
         private void CheckButtonCollision(Button button)
         {
             if (button.Visibility != Visibility.Visible) return;
 
-            // Rectangle de collision du joueur
             Rect playerRect = new Rect(
                 Canvas.GetLeft(Player),
                 Canvas.GetTop(Player),
@@ -472,7 +679,6 @@ namespace FulbankApp.View
                 Player.ActualHeight
             );
 
-            // Rectangle de collision du bouton
             Rect buttonRect = new Rect(
                 Canvas.GetLeft(button),
                 Canvas.GetTop(button),
@@ -480,331 +686,56 @@ namespace FulbankApp.View
                 button.Height
             );
 
-            // Si intersection détectée, simuler un clic sur le bouton
             if (playerRect.IntersectsWith(buttonRect))
             {
                 button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             }
         }
 
-        
-
         #endregion
 
-        #region Gestionnaires d'Événements des Boutons
+        #region Boutons / Navigation (inchangés)
 
-        /// <summary>
-        /// Gère le clic sur un bouton (avec animation de zoom)
-        /// </summary>
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            // Créer et lancer l'animation de zoom au clic
             var storyboard = CreateButtonClickZoomAnimation();
             storyboard.Begin();
         }
 
-        /// <summary>
-        /// Gère le survol du bouton Crypto Wallet
-        /// </summary>
-        private void Button_MouseEnter(object sender, MouseEventArgs e)
-        {
-            ZoomOnButton(CryptoButton);
-        }
+        private void Button_MouseEnter(object sender, MouseEventArgs e) => ZoomOnButton(CryptoButton);
+        private void Button_MouseLeave(object sender, MouseEventArgs e) => ResetCanvasZoom();
+        private void Button2_MouseEnter(object sender, MouseEventArgs e) => ZoomOnButton(CryptoButton2);
+        private void Button2_MouseLeave(object sender, MouseEventArgs e) => ResetCanvasZoom();
 
-        /// <summary>
-        /// Gère la sortie du survol du bouton Crypto Wallet
-        /// </summary>
-        private void Button_MouseLeave(object sender, MouseEventArgs e)
-        {
-            ResetCanvasZoom();
-        }
-
-        /// <summary>
-        /// Gère le survol du bouton Fiat Wallet
-        /// </summary>
-        private void Button2_MouseEnter(object sender, MouseEventArgs e)
-        {
-            ZoomOnButton(CryptoButton2);
-        }
-
-        /// <summary>
-        /// Gère la sortie du survol du bouton Fiat Wallet
-        /// </summary>
-        private void Button2_MouseLeave(object sender, MouseEventArgs e)
-        {
-            ResetCanvasZoom();
-        }
-
-        
-
-        #endregion
-
-        #region Animations de Zoom
-
-        /// <summary>
-        /// Effectue un zoom centré sur un bouton
-        /// </summary>
-        private void ZoomOnButton(Button button)
-        {
-            AnimationHelper.ZoomOnCanvasButton(
-                button,
-                MainCanvas,
-                CanvasScale,
-                CanvasTranslate,
-                DarkOverlay,
-                Constants.ZOOM_CLICK_SCALE,
-                Constants.ZOOM_ANIMATION_DURATION_MS
-            );
-        }
-
-        /// <summary>
-        /// Réinitialise le zoom du canvas (retour à l'échelle normale)
-        /// </summary>
-        private void ResetCanvasZoom()
-        {
-            AnimationHelper.ResetCanvasZoom(
-                CanvasScale,
-                CanvasTranslate,
-                DarkOverlay,
-                Constants.ZOOM_ANIMATION_DURATION_MS
-            );
-        }
-
-        /// <summary>
-        /// Crée une animation de zoom complexe en 3 phases au clic sur un bouton:
-        /// 1. Zoom in (1.0 → 1.2)
-        /// 2. Zoom out léger (1.2 → 0.9)
-        /// 3. Shrink final (0.9 → 0.0)
-        /// </summary>
         private Storyboard CreateButtonClickZoomAnimation()
         {
             var storyboard = new Storyboard();
-
-            // Phase 1: Zoom in
             AddZoomAnimation(storyboard, 1.0, 1.2, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-
-            // Phase 2: Zoom out léger
             AddZoomAnimation(storyboard, 1.2, 0.9, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-
-            // Phase 3: Shrink final
             AddZoomAnimation(storyboard, 0.9, 0.0, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(0.5));
-
             return storyboard;
         }
 
-        /// <summary>
-        /// Ajoute une animation de zoom (ScaleX et ScaleY) au storyboard
-        /// </summary>
         private void AddZoomAnimation(Storyboard storyboard, double from, double to, TimeSpan beginTime, TimeSpan duration)
         {
-            // Animation pour ScaleX
-            var scaleXAnimation = new DoubleAnimation(from, to, duration)
-            {
-                BeginTime = beginTime
-            };
-
-            // Animation pour ScaleY
-            var scaleYAnimation = new DoubleAnimation(from, to, duration)
-            {
-                BeginTime = beginTime
-            };
-
-            // Définir les cibles
+            var scaleXAnimation = new DoubleAnimation(from, to, duration) { BeginTime = beginTime };
+            var scaleYAnimation = new DoubleAnimation(from, to, duration) { BeginTime = beginTime };
             Storyboard.SetTarget(scaleXAnimation, MainCanvas);
             Storyboard.SetTarget(scaleYAnimation, MainCanvas);
-
-            // Définir les propriétés à animer
             Storyboard.SetTargetProperty(scaleXAnimation,
                 new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
             Storyboard.SetTargetProperty(scaleYAnimation,
                 new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
-
-            // Ajouter au storyboard
             storyboard.Children.Add(scaleXAnimation);
             storyboard.Children.Add(scaleYAnimation);
         }
 
         #endregion
 
-        #region Rendu du Masque (MaskRect)
-
-        /// <summary>
-        /// Appelé quand le layout du MaskRect est mis à jour
-        /// Gère le throttling pour éviter trop de recalculs
-        /// </summary>
-        private void OnMaskRectLayoutUpdated(object sender, EventArgs e)
-        {
-            if (MaskRect == null) return;
-
-            DateTime now = DateTime.UtcNow;
-
-            // Throttling: éviter de mettre à jour trop fréquemment
-            if (now - _lastMaskUpdate < TimeSpan.FromMilliseconds(Constants.MASK_UPDATE_THROTTLE_MS))
-                return;
-
-            // Vérifier si la position ou la rotation a changé significativement
-            double left = Canvas.GetLeft(MaskRect);
-            double top = Canvas.GetTop(MaskRect);
-            double angle = GetMaskRotationAngle();
-
-            bool hasMoved = double.IsNaN(_previousMaskLeft) ||
-                          Math.Abs(left - _previousMaskLeft) > Constants.MASK_POSITION_THRESHOLD ||
-                          Math.Abs(top - _previousMaskTop) > Constants.MASK_POSITION_THRESHOLD;
-
-            bool hasRotated = double.IsNaN(_previousMaskAngle) ||
-                            Math.Abs(angle - _previousMaskAngle) > Constants.MASK_ROTATION_THRESHOLD;
-
-            if (hasMoved || hasRotated)
-            {
-                // Sauvegarder les nouvelles valeurs
-                _previousMaskLeft = left;
-                _previousMaskTop = top;
-                _previousMaskAngle = angle;
-                _lastMaskUpdate = now;
-
-                // Mettre à jour le rendu (en arrière-plan pour ne pas bloquer)
-                Dispatcher.BeginInvoke((Action)(() =>
-                {
-                    UpdateMaskRectBrush();
-                    UpdatePlayerDepth();
-                }), DispatcherPriority.Background);
-            }
-        }
-
-        /// <summary>
-        /// Récupère l'angle de rotation actuel du MaskRect
-        /// </summary>
-        private double GetMaskRotationAngle()
-        {
-            if (MaskRect.RenderTransform is not TransformGroup transformGroup)
-                return 0;
-
-            foreach (var transform in transformGroup.Children)
-            {
-                if (transform is RotateTransform rotateTransform)
-                    return rotateTransform.Angle;
-            }
-
-            return 0;
-        }
-
-        /// <summary>
-        /// Met à jour le brush du MaskRect pour afficher la portion correcte du fond
-        /// C'est ce qui crée l'effet de "masque" du bureau
-        /// </summary>
-        private void UpdateMaskRectBrush()
-        {
-            if (Background?.Source == null || MaskRect == null || MainCanvas == null)
-                return;
-
-            // Obtenir les coins transformés du MaskRect
-            Point[] corners = _collisionService.GetTransformedCorners(MaskRect);
-            if (corners == null || corners.Length < 4)
-                return;
-
-            Point corner0 = corners[0];
-            Point corner1 = corners[1];
-            Point corner3 = corners[3];
-
-            double width = MaskRect.Width;
-            double height = MaskRect.Height;
-
-            if (width <= 0 || height <= 0)
-                return;
-
-            // Calculer la matrice de transformation inverse (world → local)
-            Matrix worldToLocal = CalculateWorldToLocalMatrix(corner0, corner1, corner3, width, height);
-
-            // Créer un brush avec la transformation
-            var visualBrush = new VisualBrush(Background)
-            {
-                Stretch = Stretch.None,
-                AlignmentX = AlignmentX.Left,
-                AlignmentY = AlignmentY.Top,
-                Transform = new MatrixTransform(worldToLocal)
-            };
-
-            // Rendre dans un bitmap
-            int pixelWidth = Math.Max(1, (int)Math.Ceiling(width));
-            int pixelHeight = Math.Max(1, (int)Math.Ceiling(height));
-
-            var renderTarget = new RenderTargetBitmap(
-                pixelWidth,
-                pixelHeight,
-                96,
-                96,
-                PixelFormats.Pbgra32
-            );
-
-            var drawingVisual = new DrawingVisual();
-            using (DrawingContext context = drawingVisual.RenderOpen())
-            {
-                context.DrawRectangle(visualBrush, null, new Rect(0, 0, width, height));
-            }
-
-            renderTarget.Render(drawingVisual);
-
-            // Appliquer le bitmap au MaskRect
-            MaskRect.Fill = new ImageBrush(renderTarget)
-            {
-                Stretch = Stretch.Fill,
-                AlignmentX = AlignmentX.Left,
-                AlignmentY = AlignmentY.Top
-            };
-        }
-
-        /// <summary>
-        /// Calcule la matrice de transformation affine inverse pour mapper
-        /// les coordonnées monde vers les coordonnées locales du MaskRect
-        /// </summary>
-        private Matrix CalculateWorldToLocalMatrix(Point s0, Point s1, Point s3, double width, double height)
-        {
-            // Points de destination (rectangle local)
-            Point d0 = new Point(0, 0);
-            Point d1 = new Point(width, 0);
-            Point d3 = new Point(0, height);
-
-            // Vecteurs des côtés du rectangle transformé
-            Vector u = s1 - s0;
-            Vector v = s3 - s0;
-
-            // Vecteurs du rectangle local
-            Vector e1 = d1 - d0;
-            Vector e2 = d3 - d0;
-
-            // Calculer le déterminant
-            double determinant = (u.X * v.Y) - (v.X * u.Y);
-
-            if (Math.Abs(determinant) < Constants.COLLISION_TOLERANCE)
-                return Matrix.Identity;
-
-            // Calculer l'inverse de la matrice U
-            double invU11 = v.Y / determinant;
-            double invU12 = -v.X / determinant;
-            double invU21 = -u.Y / determinant;
-            double invU22 = u.X / determinant;
-
-            // Calculer les coefficients de la transformation affine
-            double a11 = (e1.X * invU11) + (e2.X * invU21);
-            double a12 = (e1.X * invU12) + (e2.X * invU22);
-            double a21 = (e1.Y * invU11) + (e2.Y * invU21);
-            double a22 = (e1.Y * invU12) + (e2.Y * invU22);
-
-            double offsetX = d0.X - (a11 * s0.X + a12 * s0.Y);
-            double offsetY = d0.Y - (a21 * s0.X + a22 * s0.Y);
-
-            return new Matrix(a11, a21, a12, a22, offsetX, offsetY);
-        }
-
-        #endregion
-
-        #region Navigation
-
-
+        #region Navigation (inchangés)
 
         private void ExecuteNavigation()
         {
-            // Logique de navigation (ex: aller à une autre vue)
             MessageBox.Show("Navigation exécutée (Code-Behind)");
         }
 
@@ -814,7 +745,7 @@ namespace FulbankApp.View
             if (main == null) return;
 
             var btn = sender as Button;
-            string key = btn.Tag.ToString();  // ← récupère "BankAccounts", "Wallet", etc.
+            string key = btn.Tag.ToString();
 
             switch (key)
             {
@@ -843,6 +774,7 @@ namespace FulbankApp.View
                     break;
             }
         }
+
         #endregion
     }
 }

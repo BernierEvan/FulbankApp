@@ -8,8 +8,9 @@
              xmlns:vm="clr-namespace:FulbankApp.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+        
 
-    <Grid Cursor="">
+        <Grid Cursor="">
         <Grid.RenderTransform>
             <ScaleTransform x:Name="CameraScale" ScaleX="1" ScaleY="1"/>
         </Grid.RenderTransform>
@@ -36,26 +37,25 @@
                    Canvas.Top="0"
                    Opacity="0"/>
 
-                <Rectangle x:Name="Player"
+                <!-- Remplacement : Rectangle --> 
+                <!-- Ancien Rectangle remplacé par Image Player -->
+                <Image x:Name="Player"
                        Width="14" Height="72"
-                       Fill="Red"
+                       Source="{Binding DEFAULT_MALE_SKIN_TEST}"
                        Canvas.Left="354"
                        Canvas.Top="826"
                        Panel.ZIndex="1"
-                       RadiusX="10"
-                       RadiusY="10"
-                       RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <Rectangle.RenderTransform>
+                       RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Left" VerticalAlignment="Center"
+                       Stretch="Fill">
+                    <Image.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform ScaleY="1"/>
                             <SkewTransform/>
                             <RotateTransform Angle="90"/>
                             <TranslateTransform/>
                         </TransformGroup>
-                    </Rectangle.RenderTransform>
-                    <!-- ... reste du code ... -->
-
-                </Rectangle>
+                    </Image.RenderTransform>
+                </Image>
 
                 <Image x:Name="CharacterImage" Width="200" Height="200" Canvas.Left="468" Canvas.Top="826"/>
 
@@ -791,8 +791,6 @@
             </Canvas>
         </Viewbox>
         <!-- Personnage -->
-
-
 
         <!-- ✅ Couche sombre qui n’empêche pas de cliquer sur le bouton -->
 

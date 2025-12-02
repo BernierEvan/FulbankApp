@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using FulbankApp.Helpers;
 using WpfAnimatedGif;
@@ -35,26 +38,39 @@ namespace FulbankApp.Models
         private readonly Dictionary<Direction, BitmapImage> _walkingGifs;
         private readonly Dictionary<Direction, BitmapImage> _idleImages;
         private Direction _currentDirection;
-        private string _skinNameString = "";
-        private const string _skinNameConst = ""; 
+        private string _skinNameString = string.Empty;
+        private int _skinIndex = 0;
+
+        private static readonly string[] _availableSkins = new[]
+        {
+            Constants.DEFAULT_MALE_SKIN,
+            Constants.DEFAULT_FEMALE_SKIN,
+            Constants.THREE_PIECE_MAN_SKIN,
+            Constants.SAD_EMPLOYEE_SKIN,
+            Constants.WEIRD_TURTLE_SKIN
+        };
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Déclenché lorsque l'image est cliquée.
+        /// </summary>
+        public event EventHandler Clicked;
+
+        /// <summary>
+        /// Déclenché lorsque le skin a été changé : param = nom du skin.
+        /// </summary>
+        public event Action<string> SkinChanged;
 
         #endregion
 
         #region Properties
 
-        /// <summary>
-        /// Direction actuelle du personnage
-        /// </summary>
         public Direction CurrentDirection => _currentDirection;
-
-        /// <summary>
-        /// Vitesse de déplacement en pixels par seconde
-        /// </summary>
         public double Speed { get; set; }
 
-        /// <summary>
-        /// Position actuelle du personnage sur le canvas
-        /// </summary>
         public Point Position
         {
             get => new Point(Canvas.GetLeft(_characterImage), Canvas.GetTop(_characterImage));
@@ -65,38 +81,22 @@ namespace FulbankApp.Models
             }
         }
 
-        /// <summary>
-        /// Largeur du personnage
-        /// </summary>
         public double Width
         {
             get => _characterImage.Width;
             set => _characterImage.Width = value;
         }
 
-        /// <summary>
-        /// Hauteur du personnage
-        /// </summary>
         public double Height
         {
             get => _characterImage.Height;
             set => _characterImage.Height = value;
         }
 
-       
-
         #endregion
 
         #region Constructor
 
-        /// <summary>
-        /// Crée un nouveau personnage animé
-        /// </summary>
-        /// <param name="parentCanvas">Canvas parent où afficher le personnage</param>
-        /// <param name="width">Largeur du personnage</param>
-        /// <param name="height">Hauteur du personnage</param>
-        /// <param name="initialX">Position X initiale</param>
-        /// <param name="initialY">Position Y initiale</param>
         public AnimatedCharacter(Canvas parentCanvas, double width = 64, double height = 64, double initialX = 0, double initialY = 0)
         {
             _parentCanvas = parentCanvas ?? throw new ArgumentNullException(nameof(parentCanvas));
@@ -109,19 +109,55 @@ namespace FulbankApp.Models
             _characterImage = new Image
             {
                 Width = width,
-                Height = height
+                Height = height,
+                Stretch = Stretch.Uniform,
+                RenderTransformOrigin = new Point(0.5, 0.5),
+                IsHitTestVisible = true,
+                Cursor = Cursors.Hand
             };
+
+            // Meilleure qualité de rendu
+            RenderOptions.SetBitmapScalingMode(_characterImage, BitmapScalingMode.HighQuality);
 
             Canvas.SetLeft(_characterImage, initialX);
             Canvas.SetTop(_characterImage, initialY);
 
+            // Assurer que l'image soit au-dessus pour pouvoir cliquer dessus
+            Panel.SetZIndex(_characterImage, 1000);
+
+            // Click handler : notifier et changer le skin (cycle)
+            _characterImage.MouseLeftButtonDown += (s, e) =>
+            {
+                try
+                {
+                    Clicked?.Invoke(this, EventArgs.Empty);
+                    CycleSkin();
+                    e.Handled = true;
+                }
+                catch
+                {
+                    // ne pas laisser l'UI planter
+                }
+            };
+
             _parentCanvas.Children.Add(_characterImage);
         }
 
-        // Ligne à corriger (~30)
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Charge les GIFs et images idle pour le skin indiqué.
+        /// Méthode robuste : essaye d'abord le pack:// URI puis tente un chemin sur disque (Constants.CHARACTERS_BASE_PATH).
+        /// </summary>
         public void LoadGifs(string skinName = null)
         {
             skinName ??= Constants.DEFAULT_MALE_SKIN;
+            _skinNameString = skinName;
+
+            _walkingGifs.Clear();
+            _idleImages.Clear();
 
             foreach (Direction direction in Enum.GetValues(typeof(Direction)))
             {
@@ -129,59 +165,51 @@ namespace FulbankApp.Models
                 LoadIdleImageForDirection(direction, skinName);
             }
 
+            // Défaut sur idle down si disponible
             SetIdle(Direction.Down);
         }
 
-        /// <summary>
-        /// Change la direction et affiche l'animation de marche correspondante
-        /// </summary>
         public void SetDirection(Direction direction)
         {
             _currentDirection = direction;
 
-            if (_walkingGifs.TryGetValue(direction, out var walkingGif))
+            if (_walkingGifs.TryGetValue(direction, out var walkingGif) && walkingGif != null)
             {
                 ImageBehavior.SetAnimatedSource(_characterImage, walkingGif);
+                return;
+            }
+
+            if (_idleImages.TryGetValue(direction, out var idleFallback) && idleFallback != null)
+            {
+                ImageBehavior.SetAnimatedSource(_characterImage, null);
+                _characterImage.Source = idleFallback;
             }
         }
 
-        /// <summary>
-        /// Affiche l'image statique (idle) pour une direction donnée
-        /// </summary>
         public void SetIdle(Direction direction)
         {
             _currentDirection = direction;
 
-            if (_idleImages.TryGetValue(direction, out var idleImage))
+            if (_idleImages.TryGetValue(direction, out var idleImage) && idleImage != null)
             {
-                // Arrêter le GIF actuel
                 ImageBehavior.SetAnimatedSource(_characterImage, null);
-                // Afficher l'image statique
                 _characterImage.Source = idleImage;
             }
         }
 
-        /// <summary>
-        /// Déplace le personnage dans une direction pendant un temps donné
-        /// </summary>
-        /// <param name="direction">Direction du mouvement</param>
-        /// <param name="deltaTime">Temps écoulé en secondes</param>
         public void Move(Direction direction, double deltaTime)
         {
             _currentDirection = direction;
 
-            // Calcul du vecteur de déplacement
             (double dx, double dy) = GetMovementVector(direction);
 
-            // Normalisation pour les diagonales
             if (dx != 0 && dy != 0)
             {
-                const double diagonalFactor = 0.70710678118; // 1 / sqrt(2)
+                const double diagonalFactor = 0.70710678118;
                 dx *= diagonalFactor;
                 dy *= diagonalFactor;
             }
 
-            // Déplacement réel en pixels
             dx *= Speed * deltaTime;
             dy *= Speed * deltaTime;
 
@@ -190,11 +218,29 @@ namespace FulbankApp.Models
         }
 
         /// <summary>
-        /// Retire le personnage du canvas
+        /// Force l'application d'un skin particulier.
         /// </summary>
+        public void ApplySkin(string skinName)
+        {
+            if (string.IsNullOrWhiteSpace(skinName)) return;
+            LoadGifs(skinName);
+            SkinChanged?.Invoke(skinName);
+        }
+
+        /// <summary>
+        /// Parcours la liste de skins disponibles (cycle) et l'applique.
+        /// </summary>
+        public void CycleSkin()
+        {
+            _skinIndex = (_skinIndex + 1) % _availableSkins.Length;
+            var newSkin = _availableSkins[_skinIndex];
+            LoadGifs(newSkin);
+            SkinChanged?.Invoke(newSkin);
+        }
+
         public void RemoveFromCanvas()
         {
-            if (_parentCanvas.Children.Contains(_characterImage))
+            if (_parentCanvas != null && _parentCanvas.Children.Contains(_characterImage))
             {
                 _parentCanvas.Children.Remove(_characterImage);
             }
@@ -202,49 +248,106 @@ namespace FulbankApp.Models
 
         #endregion
 
-        #region Private Methods
+        #region Private Methods - Loading
 
-        /// <summary>
-        /// Charge le GIF de marche pour une direction donnée
-        /// </summary>
         private void LoadGifForDirection(Direction direction, string skinName)
         {
-            string gifFileName = GetWalkGifFileName(direction);
-            string uriPath = Constants.GetCharacterWalkGifPath(skinName, gifFileName.Replace("walk_", "").Replace(".gif", ""));
+            string fileName = GetWalkGifFileName(direction);
+            string packUri = Constants.GetCharacterWalkGifPath(skinName, GetDirectionKey(direction));
+            BitmapImage bmp = TryLoadBitmap(packUri, BuildFallbackPath(skinName, "animations", "walk", "gifs", fileName));
 
-            try
+            if (bmp != null)
             {
-                var uri = new Uri(uriPath, UriKind.Absolute);
-                _walkingGifs[direction] = new BitmapImage(uri);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du chargement du GIF {gifFileName} : {ex.Message}");
+                _walkingGifs[direction] = bmp;
             }
         }
 
-        /// <summary>
-        /// Charge l'image statique pour une direction donnée
-        /// </summary>
         private void LoadIdleImageForDirection(Direction direction, string skinName)
         {
-            string idleFileName = GetIdleImageFileName(direction);
-            string uriPath = Constants.GetCharacterIdlePath(skinName, idleFileName.Replace("idle_", "").Replace(".png", ""));
+            string fileName = GetIdleImageFileName(direction);
+            string packUri = Constants.GetCharacterIdlePath(skinName, GetDirectionKey(direction));
+            BitmapImage bmp = TryLoadBitmap(packUri, BuildFallbackPath(skinName, "idle", fileName));
 
-            try
+            if (bmp != null)
             {
-                var uri = new Uri(uriPath, UriKind.Absolute);
-                _idleImages[direction] = new BitmapImage(uri);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du chargement de l'image {idleFileName} : {ex.Message}");
+                _idleImages[direction] = bmp;
             }
         }
 
-        /// <summary>
-        /// Retourne le nom de fichier du GIF de marche selon la direction
-        /// </summary>
+        private static string GetDirectionKey(Direction direction) => direction switch
+        {
+            Direction.Up => "up",
+            Direction.Down => "down",
+            Direction.Left => "left",
+            Direction.Right => "right",
+            Direction.UpLeft => "up_left",
+            Direction.UpRight => "up_right",
+            Direction.DownLeft => "down_left",
+            Direction.DownRight => "down_right",
+            _ => "down"
+        };
+
+        private BitmapImage TryLoadBitmap(string packUri, string fallbackFilePath)
+        {
+            if (!string.IsNullOrWhiteSpace(packUri))
+            {
+                try
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(packUri, UriKind.Absolute);
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    return bmp;
+                }
+                catch
+                {
+                    // essayer fallback
+                }
+            }
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(fallbackFilePath) && File.Exists(fallbackFilePath))
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.UriSource = new Uri(fallbackFilePath, UriKind.Absolute);
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    return bmp;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return null;
+        }
+
+        private string BuildFallbackPath(string skinName, params string[] segments)
+        {
+            try
+            {
+                var parts = new List<string> { Constants.CHARACTERS_BASE_PATH, skinName };
+                parts.AddRange(segments);
+                return Path.Combine(parts.ToArray());
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        #endregion
+
+        #region Helpers - Filenames & Movement
+
         private static string GetWalkGifFileName(Direction direction) => direction switch
         {
             Direction.Up => "walk_up.gif",
@@ -258,9 +361,6 @@ namespace FulbankApp.Models
             _ => "walk_down.gif"
         };
 
-        /// <summary>
-        /// Retourne le nom de fichier de l'image idle selon la direction
-        /// </summary>
         private static string GetIdleImageFileName(Direction direction) => direction switch
         {
             Direction.Up => "idle_up.png",
@@ -274,9 +374,6 @@ namespace FulbankApp.Models
             _ => "idle_down.png"
         };
 
-        /// <summary>
-        /// Retourne le vecteur de mouvement normalisé pour une direction
-        /// </summary>
         private static (double dx, double dy) GetMovementVector(Direction direction) => direction switch
         {
             Direction.Up => (0, -1),
@@ -290,9 +387,6 @@ namespace FulbankApp.Models
             _ => (0, 0)
         };
 
-        /// <summary>
-        /// Déplace le personnage de manière relative
-        /// </summary>
         private void MoveBy(double deltaX, double deltaY)
         {
             double currentX = Canvas.GetLeft(_characterImage);
@@ -313,8 +407,5 @@ namespace FulbankApp.Models
         }
 
         #endregion
-
-        
     }
-       
 }

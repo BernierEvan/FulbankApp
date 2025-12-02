@@ -198,6 +198,29 @@ namespace FulbankApp.ViewModels
 
             // Clavier PIN
             AjouterChiffreCommand = new ViewModelCommand(p => AddDigit(p?.ToString() ?? ""));
+
+            // Si une sélection de skin existe déjà dans Application.Properties, l'utiliser comme CurrentSkin
+            try
+            {
+                if (Application.Current != null && Application.Current.Properties.Contains("SelectedSkin"))
+                {
+                    var stored = Application.Current.Properties["SelectedSkin"] as string;
+                    if (!string.IsNullOrWhiteSpace(stored))
+                    {
+                        CurrentSkin = stored;
+                    }
+                }
+                else
+                {
+                    // initialiser la clé pour cohérence
+                    if (Application.Current != null)
+                        Application.Current.Properties["SelectedSkin"] = _currentSkin;
+                }
+            }
+            catch
+            {
+                // ne pas casser l'initialisation si Application.Current non disponible
+            }
         }
 
         #endregion
@@ -260,6 +283,18 @@ namespace FulbankApp.ViewModels
             if (newSkinName != CurrentSkin)
             {
                 CurrentSkin = newSkinName;
+
+                // Persister temporairement dans Application.Current.Properties pour que HomeView puisse le lire
+                try
+                {
+                    if (Application.Current != null)
+                        Application.Current.Properties["SelectedSkin"] = newSkinName;
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 RequestSkinChangeAnimation?.Invoke(newSkinName);
             }       
         }
