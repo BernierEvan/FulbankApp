@@ -89,4 +89,8 @@
     <Resource Include="assets\images\fulbank_login_page.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\NewFolder\" />
+  </ItemGroup>
+
 </Project>

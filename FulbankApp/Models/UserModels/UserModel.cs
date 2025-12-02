@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FulbankApp.Models.WalletModels;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,5 +13,9 @@ namespace FulbankApp.Models
         public string Name { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
+        public string Pin { get; set; }
+        public WalletClass Wallet { get; set; }
+
+
     }
 }
