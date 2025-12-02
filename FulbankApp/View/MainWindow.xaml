@@ -12,7 +12,8 @@
         ResizeMode="CanMinimize">
     
     <Window.DataContext>
-        <vm:MainViewModel/>
+        <vm:MainViewModel
+            />
     </Window.DataContext>
 
     <Grid>

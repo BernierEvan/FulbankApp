@@ -826,7 +826,7 @@ namespace FulbankApp.View
                     main.Content = new WalletView();
                     break;
 
-                case "MakeATransfer":
+                case "Transfer":
                     main.Content = new TransferView();
                     break;
 

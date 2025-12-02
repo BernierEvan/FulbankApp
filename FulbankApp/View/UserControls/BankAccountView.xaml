@@ -9,8 +9,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-
+    
+    
     <DockPanel>
+        
 
         <!-- HEADER -->
         <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">

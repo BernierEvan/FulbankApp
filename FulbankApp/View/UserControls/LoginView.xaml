@@ -242,31 +242,31 @@
                 </Ellipse>
 
                 <!--#endregion-->
-                
+
                 <!--#region UnLogged Connection-->
 
                 <TextBox x:Name="usernameInput">
-                    
-                    
+
+
                 </TextBox>
 
                 <TextBox x:Name="passwordInput">
-                    
+
                 </TextBox>
 
                 <Button x:Name="forgotPassword">
-                    
+
                 </Button>
 
                 <Button x:Name="register">
-                    
+
                 </Button>
 
                 <TextBlock x:Name="welcomeText">
-                    
+
                 </TextBlock>
-                
-                
+
+
                 <!--#endregion-->
 
                 <!--#region Login|Register Buttons-->
@@ -393,7 +393,7 @@
                 </Button>
 
                 <TextBlock x:Name="welcomeBackText">
-                    
+
                 </TextBlock>
 
                 <!--#endregion-->
@@ -487,20 +487,28 @@
                        Text="{Binding PinTextDisplay}"/>
 
                 <Button Width="70" Height="70"
-                    Canvas.Left="860" Canvas.Top="369"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    Cursor="Hand"
-                    Command="{Binding BackCommand}"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Retour"/>
-                <Image Source="/assets/images/fulbank_go_back_logo.jpg"
-                       Stretch="Uniform"
-                       Opacity="0.8" Height="68" Width="64" HorizontalAlignment="Left" Canvas.Left="936" Canvas.Top="501" VerticalAlignment="Top">
-                    <Image.Clip>
-                        <EllipseGeometry Center="30,30" RadiusX="30" RadiusY="30"/>
-                    </Image.Clip>
-                </Image>
+        Canvas.Left="925" Canvas.Top="500"
+        Background="Transparent"
+        BorderBrush="Transparent"
+        Cursor="Hand"
+        Command="{Binding BackCommand}"
+        Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
+        ToolTip="Retour">
+
+                    <Image Source="/assets/images/fulbank_go_back_logo.jpg"
+           Stretch="Uniform"
+           Opacity="0.8"
+           Height="68" Width="64"
+           HorizontalAlignment="Left"
+           VerticalAlignment="Top">
+                        <Image.Clip>
+                            <EllipseGeometry Center="30,30" RadiusX="30" RadiusY="30"/>
+                        </Image.Clip>
+                    </Image>
+
+                </Button>
+
+
 
                 <!--#endregion-->
 
