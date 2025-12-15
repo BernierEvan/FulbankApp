@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace FulbankApp.ViewModels
 {
-     public class TransferViewModel
+    public class TransferViewModel : BaseViewModel
     {
-        public string PageTitle => "Virements";
+        public string PageTitle => "Transfer";
+
+        public TransferViewModel()
+        {
+            // Initialisation
+        }
     }
 }

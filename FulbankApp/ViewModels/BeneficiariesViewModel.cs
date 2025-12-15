@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace FulbankApp.ViewModels
 {
-    public class BeneficiariesViewModel
+    public class BeneficiariesViewModel : BaseViewModel
     {
-        public string PageTitle => "Mes Bénéficiaires";
+        public string PageTitle => "Beneficiaries";
+
+        public BeneficiariesViewModel()
+        {
+            // Initialisation
+        }
     }
 }

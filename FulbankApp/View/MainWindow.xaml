@@ -1,21 +1,14 @@
 ﻿<Window x:Class="FulbankApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FulbankApp"
-        xmlns:vm="clr-namespace:FulbankApp.ViewModels"
-        mc:Ignorable="d"
+        xmlns:view="clr-namespace:FulbankApp.View"
         Title="FulbankApp"
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanMinimize">
-    
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
 
     <Grid>
-        <ContentControl Content="{Binding CurrentViewModel}"/>
+        <!-- TEST : Affichage direct sans binding -->
+        <view:LoginView/>
     </Grid>
 </Window>

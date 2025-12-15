@@ -11,7 +11,7 @@ namespace FulbankApp.Repositories
 
         public RepositoryBase()
         {
-            _connectionString = "Server=172.16.119.44;Database=testDB;User Id=fulbank_user;Password=MonSuperMotDePasse123!;Encrypt=False;";
+            _connectionString = SecureConfig.GetConnectionString();
         }
 
         protected SqlConnection GetConnection()

@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace FulbankApp.ViewModels
 {
-    public class WalletViewModel
+    public class WalletViewModel : BaseViewModel
     {
-        public string PageTitle => "Mon Wallet";
+        public string PageTitle => "Wallet";
+
+        public WalletViewModel()
+        {
+            // Initialisation
+        }
     }
 }

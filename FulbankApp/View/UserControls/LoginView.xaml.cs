@@ -1,8 +1,6 @@
 ﻿using FulbankApp.Helpers;
 using FulbankApp.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,392 +12,252 @@ namespace FulbankApp.View
 {
     public partial class LoginView : UserControl
     {
-        private readonly Dictionary<KeyCombo, Button> _keyMap = new();
-
         private LoginViewModel ViewModel => DataContext as LoginViewModel;
 
         public LoginView()
         {
             InitializeComponent();
-            InitializeKeyMap();
-            SetupAnimations();
-            this.PreviewKeyDown += OnWindowKeyDown;
-            this.Loaded += LoginView_Loaded;
+
+            // S'abonner aux événements du ViewModel
+            Loaded += LoginView_Loaded;
         }
 
         private void LoginView_Loaded(object sender, RoutedEventArgs e)
         {
             if (ViewModel != null)
             {
-                ViewModel.RequestResetZoom += OnResetZoomRequested;
-                ViewModel.RequestSkinChangeAnimation += ChangeSkinWithAnimation;
-                ViewModel.RequestSkinPanelDisplay += ShowSkinSelectionPanel;
-
-                // charger le skin initial s'il existe
-                if (!string.IsNullOrWhiteSpace(ViewModel.CurrentSkin))
-                    LoadCharacterSkin(ViewModel.CurrentSkin);
-            }
-        }
-
-        private void SetupAnimations()
-        {
-            AnimationHelper.CreatePulseAnimation(Halo, durationSeconds: 1);
-        }
-
-        private void InitializeKeyMap()
-        {
-            for (int i = 0; i <= 9; i++)
-            {
-                Key digitKey = Key.D0 + i;
-                Key numpadKey = Key.NumPad0 + i;
-                Button button = FindPinButton(i);
-
-                if (button != null)
-                {
-                    _keyMap[new KeyCombo(digitKey)] = button;
-                    _keyMap[new KeyCombo(numpadKey)] = button;
-                }
+                ViewModel.RequestResetZoom += OnRequestResetZoom;
+                ViewModel.RequestSkinChangeAnimation += OnRequestSkinChange;
+                ViewModel.RequestSkinPanelDisplay += OnRequestSkinPanelDisplay;
             }
 
-            _keyMap[new KeyCombo(Key.Back)] = BtnPinBack;
-            _keyMap[new KeyCombo(Key.Back, ModifierKeys.Control)] = BtnPinErase;
+            // Animer l'apparition des halos
+            AnimateHalosPulse();
+
+            // Animer les boutons au survol
+            SetupButtonHoverAnimations();
         }
 
-        private Button FindPinButton(int digit) => digit switch
+        #region Event Handlers - Personnage
+
+        private void CharacterButton_Click(object sender, RoutedEventArgs e)
         {
-            0 => BtnPin0,
-            1 => BtnPin1,
-            2 => BtnPin2,
-            3 => BtnPin3,
-            4 => BtnPin4,
-            5 => BtnPin5,
-            6 => BtnPin6,
-            7 => BtnPin7,
-            8 => BtnPin8,
-            9 => BtnPin9,
-            _ => null
-        };
+            // Animation de rebond
+            var bounceStoryboard = CharacterButton.FindResource("BounceStoryboard") as Storyboard;
+            bounceStoryboard?.Begin();
 
-        private void LoadCharacterSkin(string skinName)
+            // Afficher le panneau de sélection de skin
+            ViewModel?.EnterSkinSelectionCommand.Execute(null);
+        }
+
+        #endregion
+
+        #region Event Handlers - ViewModel
+
+        private void OnRequestResetZoom()
         {
-            if (string.IsNullOrWhiteSpace(skinName)) return;
+            AnimationHelper.ResetCanvasZoom(
+                CanvasScale,
+                CanvasTranslate,
+                DarkOverlay
+            );
+        }
 
-            string imagePath = $"{Constants.CHARACTERS_BASE_PATH}/{skinName}/idle/idle_down.png";
-
+        private void OnRequestSkinChange(string skinName)
+        {
+            // Charger la nouvelle image de skin
             try
             {
-                if (!File.Exists(imagePath))
-                {
-                    System.Diagnostics.Debug.WriteLine($"Image introuvable : {imagePath}");
-                    return;
-                }
-
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-
-                CharacterImage.Source = bitmap;
+                string imagePath = Constants.GetCharacterIdlePath(skinName, "down");
+                CharacterImage.Source = new BitmapImage(new Uri(imagePath, UriKind.Absolute));
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Erreur lors du chargement du skin : {ex.Message}");
+                // Si l'image n'est pas trouvée, garder l'ancienne
             }
         }
 
-        private async void ChangeSkinWithAnimation(string newSkin)
+        private void OnRequestSkinPanelDisplay()
         {
-            if (string.IsNullOrWhiteSpace(newSkin)) return;
-
-            try
-            {
-                double screenWidth = this.ActualWidth;
-                double exitDistance = -(screenWidth + CharacterButton.ActualWidth);
-
-                var exitAnim = new DoubleAnimation
-                {
-                    From = 0,
-                    To = exitDistance,
-                    Duration = TimeSpan.FromMilliseconds(Constants.CHARACTER_WALK_DURATION_MS),
-                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
-                };
-
-                AnimationHelper.FadeOut(CharacterButton, 500);
-                CharacterTranslate.BeginAnimation(TranslateTransform.XProperty, exitAnim);
-
-                await System.Threading.Tasks.Task.Delay(Constants.CHARACTER_WALK_DURATION_MS + 100);
-
-                LoadCharacterSkin(newSkin);
-
-                CharacterTranslate.X = exitDistance;
-
-                await System.Threading.Tasks.Task.Delay(100);
-
-                CharacterButton.Opacity = 0;
-                CharacterButton.Visibility = Visibility.Visible;
-
-                var enterAnim = new DoubleAnimation
-                {
-                    From = exitDistance,
-                    To = 0,
-                    Duration = TimeSpan.FromMilliseconds(Constants.CHARACTER_WALK_DURATION_MS),
-                    EasingFunction = new BounceEase { Bounces = 2, Bounciness = 2, EasingMode = EasingMode.EaseOut }
-                };
-
-                CharacterTranslate.BeginAnimation(TranslateTransform.XProperty, enterAnim);
-                AnimationHelper.FadeIn(CharacterButton, Constants.CHARACTER_WALK_DURATION_MS);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Animation error: {ex.Message}");
-                CharacterButton.Opacity = 1;
-                CharacterButton.Visibility = Visibility.Visible;
-                CharacterTranslate.X = 0;
-            }
+            ShowSkinSelectionPanel();
         }
+
+        #endregion
+
+        #region Skin Selection Panel
 
         private void ShowSkinSelectionPanel()
         {
+            // Effacer le contenu précédent
             SkinContainer.Children.Clear();
 
-            var skins = ViewModel?.AvailableSkins ?? new List<string>();
-            foreach (var skin in skins)
+            // Créer un bouton pour chaque skin disponible
+            foreach (string skin in ViewModel.AvailableSkins)
             {
                 var button = CreateSkinButton(skin);
                 SkinContainer.Children.Add(button);
             }
 
+            // Animer l'apparition du panneau
             SkinSelectionPanel.Visibility = Visibility.Visible;
-            DarkOverlay.Opacity = Constants.DARK_OVERLAY_OPACITY;
 
-            var scaleAnim = new DoubleAnimation
+            var storyboard = new Storyboard();
+
+            // Animation de l'opacité
+            var fadeIn = new DoubleAnimation
             {
-                From = Constants.SKIN_PANEL_INITIAL_SCALE,
+                From = 0,
                 To = 1,
-                Duration = TimeSpan.FromMilliseconds(Constants.SKIN_PANEL_ANIMATION_DURATION_MS),
+                Duration = TimeSpan.FromMilliseconds(300)
+            };
+            Storyboard.SetTarget(fadeIn, SkinSelectionPanel);
+            Storyboard.SetTargetProperty(fadeIn, new PropertyPath("Opacity"));
+
+            // Animation du scale
+            var scaleX = new DoubleAnimation
+            {
+                From = 0.8,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(300),
                 EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut }
             };
+            Storyboard.SetTarget(scaleX, SkinSelectionPanel);
+            Storyboard.SetTargetProperty(scaleX, new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)"));
 
-            AnimationHelper.FadeIn(SkinSelectionPanel, Constants.SKIN_PANEL_ANIMATION_DURATION_MS);
-            PanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-            PanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+            var scaleY = new DoubleAnimation
+            {
+                From = 0.8,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(300),
+                EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(scaleY, SkinSelectionPanel);
+            Storyboard.SetTargetProperty(scaleY, new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleY)"));
+
+            storyboard.Children.Add(fadeIn);
+            storyboard.Children.Add(scaleX);
+            storyboard.Children.Add(scaleY);
+            storyboard.Begin();
         }
 
         private Button CreateSkinButton(string skinName)
         {
             var button = new Button
             {
-                Style = (Style)FindResource("SkinButton"),
-                Margin = new Thickness(10),
+                Width = 150,
+                Height = 150,
+                Margin = new Thickness(15),
+                Background = new SolidColorBrush(Color.FromArgb(100, 26, 26, 46)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(207, 255, 4)),
+                BorderThickness = new Thickness(2),
+                Cursor = Cursors.Hand,
                 Tag = skinName
             };
 
-            var grid = new Grid();
-
-            var image = new System.Windows.Controls.Image
+            // Image du skin
+            var image = new Image
             {
-                Width = 225,
-                Height = 225,
+                Source = LoadSkinPreview(skinName),
                 Stretch = Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
+                Margin = new Thickness(10)
             };
 
-            string imagePath = $"{Constants.CHARACTERS_BASE_PATH}/{skinName}/idle/idle_down.png";
+            button.Content = image;
+            button.Click += SkinButton_Click;
 
-            try
+            // Animation au survol
+            button.MouseEnter += (s, e) =>
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(imagePath, UriKind.RelativeOrAbsolute);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                image.Source = bitmap;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Erreur chargement skin {skinName} : {ex.Message}");
-            }
+                var btn = s as Button;
+                var scaleTransform = new ScaleTransform(1, 1);
+                btn.RenderTransform = scaleTransform;
+                btn.RenderTransformOrigin = new Point(0.5, 0.5);
 
-            grid.Children.Add(image);
+                var anim = new DoubleAnimation(1, 1.1, TimeSpan.FromMilliseconds(200));
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+                scaleTransform.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
 
-            if (skinName == ViewModel?.CurrentSkin)
+                btn.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 255, 255));
+            };
+
+            button.MouseLeave += (s, e) =>
             {
-                var checkmark = new TextBlock
+                var btn = s as Button;
+                if (btn.RenderTransform is ScaleTransform st)
                 {
-                    Text = "✓",
-                    FontSize = 40,
-                    Foreground = new SolidColorBrush(Colors.LimeGreen),
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Margin = new Thickness(0, -10, -10, 0)
-                };
-                grid.Children.Add(checkmark);
-            }
+                    var anim = new DoubleAnimation(1.1, 1, TimeSpan.FromMilliseconds(200));
+                    st.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+                    st.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+                }
 
-            button.Content = grid;
-            button.Click += OnSkinButtonClick;
+                btn.BorderBrush = new SolidColorBrush(Color.FromRgb(207, 255, 4));
+            };
 
             return button;
         }
 
-        private void OnSkinButtonClick(object sender, RoutedEventArgs e)
+        private ImageSource LoadSkinPreview(string skinName)
         {
-            if (sender is Button button && button.Tag is string skinName)
+            try
             {
-                if (skinName != ViewModel?.CurrentSkin)
-                {
-                    CloseSkinPanel_Click(sender, e);
-                    System.Threading.Tasks.Task.Delay(400).ContinueWith(_ =>
-                    {
-                        Dispatcher.Invoke(() => ChangeSkinWithAnimation(skinName));
-                    });
-                }
-                else
-                {
-                    ViewModel?.BackCommand.Execute(null);
-                    CloseSkinPanel_Click(sender, e);
-                }
+                string path = Constants.GetCharacterIdlePath(skinName, "down");
+                return new BitmapImage(new Uri(path, UriKind.Absolute));
+            }
+            catch
+            {
+                return null;
             }
         }
 
-        /// <summary>
-        /// Zoom hover sur un bouton
-        /// </summary>
-        private void ZoomHoverOnButton(Button button)
+        private void SkinButton_Click(object sender, RoutedEventArgs e)
         {
-            AnimationHelper.ZoomOnCanvasButton(
-                button,
-                MainCanvas,
-                CanvasScale,
-                CanvasTranslate,
-                DarkOverlay,
-                Constants.ZOOM_HOVER_SCALE
-            );
-        }
-
-        /// <summary>
-        /// Zoom click sur un bouton
-        /// </summary>
-        private void ZoomClickOnButton(Button button)
-        {
-            AnimationHelper.ZoomOnCanvasButton(
-                button,
-                MainCanvas,
-                CanvasScale,
-                CanvasTranslate,
-                DarkOverlay,
-                Constants.ZOOM_CLICK_SCALE
-            );
-        }
-
-        /// <summary>
-        /// Reset le zoom du canvas
-        /// </summary>
-        public void ResetZoom()
-        {
-            AnimationHelper.ResetCanvasZoom(CanvasScale, CanvasTranslate, DarkOverlay);
-        }
-
-        private void CharacterButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Animation de bounce
-            AnimationHelper.AnimateScale(CharacterButton, Constants.CHARACTER_BOUNCE_SCALE, 200);
-
-            // Ouvrir le panneau de sélection
-            ViewModel?.EnterSkinSelection.Execute(null);
-            ShowSkinSelectionPanel();
+            if (sender is Button button && button.Tag is string skinName)
+            {
+                ViewModel.ChangeSkinCommand.Execute(skinName);
+                CloseSkinPanel_Click(null, null);
+            }
         }
 
         private void CloseSkinPanel_Click(object sender, RoutedEventArgs e)
         {
-            var scaleAnim = new DoubleAnimation
+            var storyboard = new Storyboard();
+
+            var fadeOut = new DoubleAnimation
             {
                 From = 1,
-                To = Constants.SKIN_PANEL_INITIAL_SCALE,
-                Duration = TimeSpan.FromMilliseconds(Constants.HALO_ANIMATION_DURATION_MS),
-                EasingFunction = new BackEase { EasingMode = EasingMode.EaseIn }
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(200)
             };
+            Storyboard.SetTarget(fadeOut, SkinSelectionPanel);
+            Storyboard.SetTargetProperty(fadeOut, new PropertyPath("Opacity"));
 
-            AnimationHelper.FadeOut(SkinSelectionPanel, Constants.HALO_ANIMATION_DURATION_MS, () =>
+            storyboard.Children.Add(fadeOut);
+            storyboard.Completed += (s, args) =>
             {
                 SkinSelectionPanel.Visibility = Visibility.Collapsed;
-                DarkOverlay.Opacity = 0;
-            });
+                OnRequestResetZoom();
+            };
 
-            PanelScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-            PanelScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+            storyboard.Begin();
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        #endregion
+
+        #region Animations
+
+        private void AnimateHalosPulse()
         {
-            ZoomClickOnButton(LoginButton);
-            ViewModel?.HideBothCommand.Execute(null);
+            // Animation de pulsation pour les halos
+            AnimationHelper.CreatePulseAnimation(Halo, 1.0, 1.2, 2);
+            AnimationHelper.CreatePulseAnimation(Halo2, 1.0, 1.15, 1);
         }
 
-        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private void SetupButtonHoverAnimations()
         {
-            ZoomClickOnButton(RegisterButton);
-            ViewModel?.HideBothCommand.Execute(null);
+            // Les animations de survol sont déjà définies dans le XAML via les Triggers
+            // Cette méthode peut être utilisée pour des animations supplémentaires si nécessaire
         }
 
-        private void PinButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button)
-            {
-                AnimationHelper.SimulateButtonPress(button);
-                ViewModel.HandlePinInput(button.Content.ToString());
-            }
-        }
-
-        private void LoginButton_MouseEnter(object sender, MouseEventArgs e) =>
-            ZoomHoverOnButton(LoginButton);
-
-        private void RegisterButton_MouseEnter(object sender, MouseEventArgs e) =>
-            ZoomHoverOnButton(RegisterButton);
-
-        private void LoginButton_MouseLeave(object sender, MouseEventArgs e) =>
-            ResetZoom();
-
-        private void RegisterButton_MouseLeave(object sender, MouseEventArgs e) =>
-            ResetZoom();
-
-        private void OnResetZoomRequested() => ResetZoom();
-
-        private void OnWindowKeyDown(object sender, KeyEventArgs e)
-        {
-            var combo = new KeyCombo(e.Key, Keyboard.Modifiers);
-
-            if (_keyMap.TryGetValue(combo, out Button button))
-            {
-                AnimationHelper.SimulateButtonPress(button);
-                button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                e.Handled = true;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Représente une combinaison de touche + modificateur
-    /// </summary>
-    public struct KeyCombo
-    {
-        public Key Key { get; set; }
-        public ModifierKeys Modifiers { get; set; }
-
-        public KeyCombo(Key key, ModifierKeys modifiers = ModifierKeys.None)
-        {
-            Key = key;
-            Modifiers = modifiers;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is KeyCombo other && Key == other.Key && Modifiers == other.Modifiers;
-        }
-
-        public override int GetHashCode() => HashCode.Combine(Key, Modifiers);
+        #endregion
     }
 }
-

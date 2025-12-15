@@ -3,11 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:FulbankApp.View"
-             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
-             xmlns:v="clr-namespace:FulbankApp.View"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             xmlns:cc="clr-namespace:FulbankApp.CustomControls" xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="1080" d:DesignWidth="1920">
+
+    <!-- ✅ AJOUTE CE DATACONTEXT -->
+    <UserControl.DataContext>
+        <vm:LoginViewModel/>
+    </UserControl.DataContext>
 
     <Grid>
         <Viewbox Stretch="UniformToFill">
@@ -21,202 +24,19 @@
                 </Canvas.RenderTransform>
 
                 <!--#region Background-->
-
                 <Image Source="/assets/images/fulbank_login_page.png"
                    Width="1920" Height="1080"
                    Stretch="Fill"/>
-
                 <!--#endregion-->
 
                 <!--#region DarkOverlay-->
-
                 <Rectangle x:Name="DarkOverlay"
                        Fill="#AA000000"
                        Width="1920" Height="1080"
                        Opacity="0"/>
-
-                <!--#endregion-->
-
-                <!--#region Personnage Cliquable-->
-
-                <Button x:Name="CharacterButton"
-                    Canvas.Left="200" Canvas.Top="625"
-                    Width="300" Height="400"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    Cursor="Hand"
-                    Click="CharacterButton_Click"
-                    Visibility="{Binding IsLoginVisible, Converter={StaticResource BoolToVis}}"
-                    RenderTransformOrigin="0.5,0.5">
-
-
-                    <Button.Triggers>
-                        <EventTrigger RoutedEvent="MouseEnter">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="CharacterGlow"
-                             Storyboard.TargetProperty="Opacity"
-                             To="0.6"
-                             Duration="0:0:0.25"/>
-                                    <DoubleAnimation Storyboard.TargetName="CharacterScale"
-                             Storyboard.TargetProperty="ScaleX"
-                             To="1.05"
-                             Duration="0:0:0.25" AutoReverse="True"/>
-                                    <DoubleAnimation Storyboard.TargetName="CharacterScale"
-                             Storyboard.TargetProperty="ScaleY"
-                             To="1.05"
-                             Duration="0:0:0.25" AutoReverse="True"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-
-                        <EventTrigger RoutedEvent="MouseLeave">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="CharacterGlow"
-                             Storyboard.TargetProperty="Opacity"
-                             To="0"
-                             Duration="0:0:0.25"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Button.Triggers>
-
-                    <Button.Resources>
-                        <Storyboard x:Key="MoveLeftStoryboard">
-                            <DoubleAnimation Storyboard.TargetName="CharacterTranslate"
-                     Storyboard.TargetProperty="X"
-                     From="0" To="-500"
-                     Duration="0:0:3.0"
-                     AutoReverse="True">
-                                <DoubleAnimation.EasingFunction>
-                                    <QuadraticEase EasingMode="EaseInOut"/>
-                                </DoubleAnimation.EasingFunction>
-                            </DoubleAnimation>
-                        </Storyboard>
-
-                        <Storyboard x:Key="BounceStoryboard">
-                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CharacterScale"
-                                   Storyboard.TargetProperty="ScaleY">
-                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
-                                <EasingDoubleKeyFrame KeyTime="0:0:0.12" Value="1.18"/>
-                                <EasingDoubleKeyFrame KeyTime="0:0:0.28" Value="0.95"/>
-                                <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="1"/>
-                            </DoubleAnimationUsingKeyFrames>
-                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CharacterScale"
-                                   Storyboard.TargetProperty="ScaleX">
-                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
-                                <EasingDoubleKeyFrame KeyTime="0:0:0.12" Value="1.18"/>
-                                <EasingDoubleKeyFrame KeyTime="0:0:0.28" Value="0.95"/>
-                                <EasingDoubleKeyFrame KeyTime="0:0:0.45" Value="1"/>
-                            </DoubleAnimationUsingKeyFrames>
-                        </Storyboard>
-                    </Button.Resources>
-
-                    <Grid x:Name="CharacterContentGrid"
-                      Width="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Width}"
-                      Height="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Height}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center"
-                      RenderTransformOrigin="0.5,0.5">
-
-                        <Grid.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform x:Name="CharacterScale" ScaleX="1" ScaleY="1"/>
-                                <TranslateTransform x:Name="CharacterTranslate" X="0" Y="0"/>
-                            </TransformGroup>
-                        </Grid.RenderTransform>
-
-                        <Ellipse x:Name="CharacterGlow"
-                             Fill="#33CFFF04"
-                             Opacity="0"
-                             IsHitTestVisible="False"
-                             HorizontalAlignment="Center"
-                             VerticalAlignment="Center"
-                             Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}}"
-                             Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-
-                        <!-- Image centrée ; scale local pour doubler la taille sans modifier les storyboards qui utilisent CharacterScale -->
-                        <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Image x:Name="CharacterImage"
-                               Source="/assets/characters/default_male/idle/idle_down.png"
-                               Stretch="Uniform"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               RenderTransformOrigin="0.5,0.5">
-                                <Image.RenderTransform>
-                                    <!-- Scale local fixé à 2 pour doubler la taille ; nommé pour pouvoir le retourner -->
-                                    <ScaleTransform x:Name="CharacterImageLocalScale" ScaleX="2" ScaleY="2"/>
-                                </Image.RenderTransform>
-                            </Image>
-                        </Viewbox>
-                    </Grid>
-                </Button>
-
-                <!--#endregion-->
-
-                <!--#region Skin Selection-->
-
-                <Border x:Name="SkinSelectionPanel"
-                    Canvas.Left="600" Canvas.Top="300"
-                    Width="700" Height="500"
-                    Background="#DD000000"
-                    BorderBrush="#AACFFF04"
-                    BorderThickness="3"
-                    CornerRadius="20"
-                    Visibility="Collapsed"
-                    Opacity="0">
-                    <Border.Effect>
-                        <DropShadowEffect Color="#CFFF04" BlurRadius="40" ShadowDepth="0" Opacity="0.7"/>
-                    </Border.Effect>
-                    <Border.RenderTransform>
-                        <ScaleTransform x:Name="PanelScale" ScaleX="0.8" ScaleY="0.8"/>
-                    </Border.RenderTransform>
-
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="80"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="80"/>
-                        </Grid.RowDefinitions>
-
-                        <!-- Titre -->
-                        <TextBlock Grid.Row="0"
-                               Text="Choose Your Character"
-                               FontSize="32"
-                               FontWeight="Bold"
-                               Foreground="White"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
-
-                        <!-- Grille de skins -->
-                        <WrapPanel Grid.Row="1"
-                               x:Name="SkinContainer"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Orientation="Horizontal"
-                               Width="650">
-                            <!-- Les skins seront ajoutés dynamiquement -->
-                        </WrapPanel>
-
-                        <!-- Bouton Fermer -->
-                        <Button Grid.Row="2"
-                            Content="Close"
-                            Style="{StaticResource HoverButton}"
-                            Width="150" Height="50"
-                            HorizontalAlignment="Center"
-                            Click="CloseSkinPanel_Click">
-                            <Button.Effect>
-                                <DropShadowEffect Color="#00FFFF" BlurRadius="20" ShadowDepth="0" Opacity="0.6"/>
-                            </Button.Effect>
-                        </Button>
-                    </Grid>
-                </Border>
-
                 <!--#endregion-->
 
                 <!--#region Halos-->
-
                 <Ellipse x:Name="Halo"
                      Width="372" Height="348"
                      Canvas.Left="774" Canvas.Top="586"
@@ -240,93 +60,247 @@
                         <ScaleTransform ScaleX="1" ScaleY="1"/>
                     </Ellipse.RenderTransform>
                 </Ellipse>
-
-                <!--#endregion-->
-                
-                <!--#region UnLogged Connection-->
-
-                <TextBox x:Name="usernameInput">
-                    
-                    
-                </TextBox>
-
-                <TextBox x:Name="passwordInput">
-                    
-                </TextBox>
-
-                <Button x:Name="forgotPassword">
-                    
-                </Button>
-
-                <Button x:Name="register">
-                    
-                </Button>
-
-                <TextBlock x:Name="welcomeText">
-                    
-                </TextBlock>
-                
-                
                 <!--#endregion-->
 
-                <!--#region Login|Register Buttons-->
+                <!--#region Personnage Cliquable-->
+                <Button x:Name="CharacterButton"
+                    Canvas.Left="200" Canvas.Top="625"
+                    Width="300" Height="400"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    Cursor="Hand"
+                    Click="CharacterButton_Click"
+                    Visibility="{Binding AreButtonsVisible, Converter={StaticResource BoolToVis}}"
+                    RenderTransformOrigin="0.5,0.5">
 
-                <!-- Boutons Login/Register -->
+                    <Grid x:Name="CharacterContentGrid"
+                      Width="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Width}"
+                      Height="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Height}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5">
+
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="CharacterScale" ScaleX="1" ScaleY="1"/>
+                                <TranslateTransform x:Name="CharacterTranslate" X="0" Y="0"/>
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+
+                        <Ellipse x:Name="CharacterGlow"
+                             Fill="#33CFFF04"
+                             Opacity="0"
+                             IsHitTestVisible="False"/>
+
+                        <Viewbox Stretch="Uniform">
+                            <Image x:Name="CharacterImage"
+                               Source="/assets/characters/default_male/idle/idle_down.png"
+                               RenderTransformOrigin="0.5,0.5">
+                                <Image.RenderTransform>
+                                    <ScaleTransform x:Name="CharacterImageLocalScale" ScaleX="2" ScaleY="2"/>
+                                </Image.RenderTransform>
+                            </Image>
+                        </Viewbox>
+                    </Grid>
+                </Button>
+                <!--#endregion-->
+
+                <!--#region Formulaire de Connexion-->
+                <Border Canvas.Left="700" Canvas.Top="400"
+                    Width="520" Height="400"
+                    Background="#DD1A1A2E"
+                    BorderBrush="#AACFFF04"
+                    BorderThickness="2"
+                    CornerRadius="15"
+                    Visibility="{Binding IsLoginFormVisible, Converter={StaticResource BoolToVis}}">
+
+                    <StackPanel Margin="40,30">
+                        <TextBlock Text="Connexion"
+                               FontSize="36"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,30"/>
+
+                        <!-- Username -->
+                        <TextBlock Text="Nom d'utilisateur"
+                               Foreground="White"
+                               FontSize="16"
+                               Margin="0,0,0,5"/>
+                        <TextBox x:Name="UsernameInput"
+                             Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}"
+                             Height="40"
+                             FontSize="16"
+                             Padding="10"
+                             Margin="0,0,0,20"/>
+
+                        <!-- Password -->
+                        <TextBlock Text="Mot de passe"
+                               Foreground="White"
+                               FontSize="16"
+                               Margin="0,0,0,5"/>
+                        <cc:BindingPasswordBox 
+                            Password="{Binding LoginPassword, Mode=TwoWay}"
+                            Height="40"
+                            Margin="0,0,0,20"/>
+
+                        <!-- Bouton Login -->
+                        <Button Content="Se connecter"
+                            Command="{Binding LoginCommand}"
+                            Height="45"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Margin="0,10,0,15"
+                            Style="{StaticResource HoverButton}"/>
+
+                        <!-- Lien Register -->
+                        <TextBlock HorizontalAlignment="Center">
+                            <Hyperlink Command="{Binding ShowRegisterFormCommand}"
+                                   Foreground="#00FFFF">
+                                <Run Text="Créer un compte"/>
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <!--#endregion-->
+
+                <!--#region Formulaire d'Inscription-->
+                <Border Canvas.Left="700" Canvas.Top="250"
+                    Width="520" Height="580"
+                    Background="#DD1A1A2E"
+                    BorderBrush="#AACFFF04"
+                    BorderThickness="2"
+                    CornerRadius="15"
+                    Visibility="{Binding IsRegisterFormVisible, Converter={StaticResource BoolToVis}}">
+
+                    <StackPanel Margin="40,30">
+                        <TextBlock Text="Créer un compte"
+                               FontSize="36"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,20"/>
+
+                        <!-- Nom -->
+                        <TextBlock Text="Nom"
+                               Foreground="White"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding RegisterName, UpdateSourceTrigger=PropertyChanged}"
+                             Height="35"
+                             FontSize="14"
+                             Padding="8"
+                             Margin="0,0,0,12"/>
+
+                        <!-- Prénom -->
+                        <TextBlock Text="Prénom"
+                               Foreground="White"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding RegisterLastName, UpdateSourceTrigger=PropertyChanged}"
+                             Height="35"
+                             FontSize="14"
+                             Padding="8"
+                             Margin="0,0,0,12"/>
+
+                        <!-- Email -->
+                        <TextBlock Text="Email"
+                               Foreground="White"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding RegisterEmail, UpdateSourceTrigger=PropertyChanged}"
+                             Height="35"
+                             FontSize="14"
+                             Padding="8"
+                             Margin="0,0,0,12"/>
+
+                        <!-- Mot de passe -->
+                        <TextBlock Text="Mot de passe (min. 8 caractères)"
+                               Foreground="White"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                        <cc:BindingPasswordBox 
+                            Password="{Binding RegisterPassword, Mode=TwoWay}"
+                            Height="35"
+                            Margin="0,0,0,12"/>
+
+                        <!-- Confirmation -->
+                        <TextBlock Text="Confirmer le mot de passe"
+                               Foreground="White"
+                               FontSize="14"
+                               Margin="0,0,0,5"/>
+                        <cc:BindingPasswordBox 
+                            Password="{Binding RegisterPasswordConfirm, Mode=TwoWay}"
+                            Height="35"
+                            Margin="0,0,0,15"/>
+
+                        <!-- Bouton Register -->
+                        <Button Content="Créer le compte"
+                            Command="{Binding RegisterCommand}"
+                            Height="40"
+                            FontSize="16"
+                            FontWeight="Bold"
+                            Margin="0,5,0,10"
+                            Style="{StaticResource HoverButton}"/>
+
+                        <!-- Lien retour Login -->
+                        <TextBlock HorizontalAlignment="Center">
+                            <Hyperlink Command="{Binding ShowLoginFormCommand}"
+                                   Foreground="#00FFFF">
+                                <Run Text="Déjà un compte ? Se connecter"/>
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <!--#endregion-->
+
+                <!--#region Messages d'erreur/succès-->
+                <Border Canvas.Left="710" Canvas.Top="850"
+                    Width="500"
+                    Background="#DDFF3333"
+                    BorderBrush="Red"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Padding="15,10"
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                    <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="White"
+                           FontSize="14"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"/>
+                </Border>
+
+                <Border Canvas.Left="710" Canvas.Top="850"
+                    Width="500"
+                    Background="#DD33FF33"
+                    BorderBrush="Green"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Padding="15,10"
+                    Visibility="{Binding SuccessMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                    <TextBlock Text="{Binding SuccessMessage}"
+                           Foreground="White"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"/>
+                </Border>
+                <!--#endregion-->
+
+                <!--#region Boutons Login/Register (sur les halos)-->
                 <Button x:Name="LoginButton"
                     Style="{StaticResource HoverButton}"
                     Content="Login"
                     Width="240" Height="80"
                     Canvas.Left="840" 
                     Canvas.Top="712"
-                    MouseEnter="LoginButton_MouseEnter"
-                    MouseLeave="LoginButton_MouseLeave"
-                    Click="LoginButton_Click"
                     FontSize="24"
-                    Command="{Binding HideBothCommand}"
-                    Visibility="{Binding IsLoginVisible, Converter={StaticResource BoolToVis}}"
+                    Command="{Binding ShowLoginFormCommand}"
+                    Visibility="{Binding AreButtonsVisible, Converter={StaticResource BoolToVis}}"
                     Opacity="0">
                     <Button.Effect>
                         <DropShadowEffect Color="#00FFFF" BlurRadius="30" ShadowDepth="0" Opacity="0.8"/>
                     </Button.Effect>
-                    <Button.Triggers>
-                        <EventTrigger RoutedEvent="MouseEnter">
-                            <BeginStoryboard>
-                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                    <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
-                                               From="20" To="50"
-                                               Duration="0:0:1"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="Halo"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="LoginButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="1" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="RegisterButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="1" Duration="0:0:0.2"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                        <EventTrigger RoutedEvent="MouseLeave">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="Halo"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0.3" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="LoginButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="RegisterButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Button.Triggers>
                 </Button>
 
                 <Button x:Name="RegisterButton"
@@ -335,173 +309,154 @@
                     Width="153" Height="43"
                     Canvas.Left="1461" 
                     Canvas.Top="716"
-                    MouseEnter="RegisterButton_MouseEnter"
-                    MouseLeave="RegisterButton_MouseLeave"
-                    Click="RegisterButton_Click"
                     FontSize="18"
-                    Command="{Binding HideBothCommand}"
-                    Visibility="{Binding IsRegisterVisible, Converter={StaticResource BoolToVis}}"
+                    Command="{Binding ShowRegisterFormCommand}"
+                    Visibility="{Binding AreButtonsVisible, Converter={StaticResource BoolToVis}}"
                     Opacity="0">
                     <Button.Effect>
                         <DropShadowEffect Color="#00FFFF" BlurRadius="30" ShadowDepth="0" Opacity="0.8"/>
                     </Button.Effect>
-                    <Button.Triggers>
-                        <EventTrigger RoutedEvent="MouseEnter">
-                            <BeginStoryboard>
-                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                    <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
-                                               From="20" To="50"
-                                               Duration="0:0:1"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="Halo"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="Halo2"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="RegisterButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="1" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="LoginButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="1" Duration="0:0:0.2"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                        <EventTrigger RoutedEvent="MouseLeave">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="Halo2"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0.3" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="Halo"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0.3" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="RegisterButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                    <DoubleAnimation Storyboard.TargetName="LoginButton"
-                                               Storyboard.TargetProperty="Opacity"
-                                               To="0" Duration="0:0:0.2"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Button.Triggers>
                 </Button>
-
-                <TextBlock x:Name="welcomeBackText">
-                    
-                </TextBlock>
-
                 <!--#endregion-->
 
-                <!--#region PinButtons-->
+                <!--#region Clavier PIN-->
+                <StackPanel Canvas.Left="810" Canvas.Top="450"
+                        Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}">
 
-                <!-- PIN Pad -->
-                <Button x:Name="BtnPin1" Content="1" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="845" Canvas.Top="623"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                    <!-- Instructions -->
+                    <TextBlock Text="{Binding PinInstructions}"
+                           FontSize="20"
+                           Foreground="White"
+                           TextAlignment="Center"
+                           Margin="0,0,0,20"
+                           TextWrapping="Wrap"
+                           Width="300"/>
 
-                <Button x:Name="BtnPin2" Content="2" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="940" Canvas.Top="623"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                    <!-- Affichage PIN -->
+                    <Border Background="#DD1A1A2E"
+                        BorderBrush="#CFFF04"
+                        BorderThickness="2"
+                        CornerRadius="10"
+                        Padding="20,15"
+                        Margin="0,0,0,30"
+                        Width="300">
+                        <TextBlock Text="{Binding PinDisplay}"
+                               FontSize="32"
+                               Foreground="White"
+                               TextAlignment="Center"
+                               FontFamily="Consolas"
+                               TextOptions.TextFormattingMode="Display"/>
+                    </Border>
 
-                <Button x:Name="BtnPin3" Content="3" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="1030" Canvas.Top="623"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                    <!-- Grille de boutons PIN -->
+                    <Grid Width="280" Height="280">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
 
-                <Button x:Name="BtnPin4" Content="4" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="845" Canvas.Top="698"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                        <Button Content="1" Grid.Row="0" Grid.Column="0" 
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="1"/>
+                        <Button Content="2" Grid.Row="0" Grid.Column="1"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="2"/>
+                        <Button Content="3" Grid.Row="0" Grid.Column="2"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="3"/>
 
-                <Button x:Name="BtnPin5" Content="5" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="940" Canvas.Top="698"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                        <Button Content="4" Grid.Row="1" Grid.Column="0"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="4"/>
+                        <Button Content="5" Grid.Row="1" Grid.Column="1"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="5"/>
+                        <Button Content="6" Grid.Row="1" Grid.Column="2"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="6"/>
 
-                <Button x:Name="BtnPin6" Content="6" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="1030" Canvas.Top="698"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                        <Button Content="7" Grid.Row="2" Grid.Column="0"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="7"/>
+                        <Button Content="8" Grid.Row="2" Grid.Column="1"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="8"/>
+                        <Button Content="9" Grid.Row="2" Grid.Column="2"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="9"/>
 
-                <Button x:Name="BtnPin7" Content="7" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="845" Canvas.Top="768"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
+                        <Button Content="←" Grid.Row="3" Grid.Column="0"
+                            Style="{StaticResource RoundPinBackButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="←"/>
+                        <Button Content="0" Grid.Row="3" Grid.Column="1"
+                            Style="{StaticResource RoundPinButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="0"/>
+                        <Button Content="X" Grid.Row="3" Grid.Column="2"
+                            Style="{StaticResource RoundPinValidButton}"
+                            Command="{Binding PinButtonCommand}" CommandParameter="X"/>
+                    </Grid>
 
-                <Button x:Name="BtnPin8" Content="8" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="940" Canvas.Top="768"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
-
-                <Button x:Name="BtnPin9" Content="9" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="1030" Canvas.Top="768"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
-
-                <Button x:Name="BtnPin0" Content="0" Width="50" Height="50"
-                    Style="{StaticResource RoundPinButton}"
-                    Canvas.Left="940" Canvas.Top="839"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
-
-                <Button x:Name="BtnPinBack" Content="←" Width="50" Height="50"
-                    Style="{StaticResource RoundPinBackButton}"
-                    Canvas.Left="845" Canvas.Top="839"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
-
-                <Button x:Name="BtnPinErase" Content="X" Width="50" Height="50"
-                    Style="{StaticResource RoundPinValidButton}"
-                    Canvas.Left="1030" Canvas.Top="839"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    Click="PinButton_Click"/>
-
+                    <!-- Bouton retour -->
+                    <Button Content="← Retour"
+                        Command="{Binding BackCommand}"
+                        Width="150"
+                        Height="40"
+                        Margin="0,30,0,0"
+                        Style="{StaticResource HoverButton}"/>
+                </StackPanel>
                 <!--#endregion-->
 
-                <!--#region PinDisplay-->
+                <!--#region Skin Selection Panel-->
+                <Border x:Name="SkinSelectionPanel"
+                    Canvas.Left="600" Canvas.Top="300"
+                    Width="700" Height="500"
+                    Background="#DD000000"
+                    BorderBrush="#AACFFF04"
+                    BorderThickness="3"
+                    CornerRadius="20"
+                    Visibility="Collapsed"
+                    Opacity="0">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#CFFF04" BlurRadius="40" ShadowDepth="0" Opacity="0.7"/>
+                    </Border.Effect>
 
-                <TextBlock x:Name="PinDisplay"
-                       Width="200" Height="50"
-                       Canvas.Left="795" Canvas.Top="515"
-                       FontSize="32"
-                       Foreground="White"
-                       TextAlignment="Center"
-                       Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                       Text="{Binding PinTextDisplay}"/>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="80"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="80"/>
+                        </Grid.RowDefinitions>
 
-                <Button Width="70" Height="70"
-                    Canvas.Left="860" Canvas.Top="369"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    Cursor="Hand"
-                    Command="{Binding BackCommand}"
-                    Visibility="{Binding IsPinPadVisible, Converter={StaticResource BoolToVis}}"
-                    ToolTip="Retour"/>
-                <Image Source="/assets/images/fulbank_go_back_logo.jpg"
-                       Stretch="Uniform"
-                       Opacity="0.8" Height="68" Width="64" HorizontalAlignment="Left" Canvas.Left="936" Canvas.Top="501" VerticalAlignment="Top">
-                    <Image.Clip>
-                        <EllipseGeometry Center="30,30" RadiusX="30" RadiusY="30"/>
-                    </Image.Clip>
-                </Image>
+                        <TextBlock Grid.Row="0"
+                               Text="Choose Your Character"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
 
+                        <WrapPanel Grid.Row="1"
+                               x:Name="SkinContainer"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Orientation="Horizontal"
+                               Width="650"/>
+
+                        <Button Grid.Row="2"
+                            Content="Close"
+                            Style="{StaticResource HoverButton}"
+                            Width="150" Height="50"
+                            HorizontalAlignment="Center"
+                            Click="CloseSkinPanel_Click"/>
+                    </Grid>
+                </Border>
                 <!--#endregion-->
 
             </Canvas>

@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 // Supprimez les using INotifyPropertyChanged si vous les aviez
 // ...
-
+ 
 namespace FulbankApp.ViewModels
 {
     // ➡️ HÉRITE DE BASEVIEWMODEL 
@@ -14,7 +14,7 @@ namespace FulbankApp.ViewModels
     public class MainViewModel : BaseViewModel
     {
         #region Navigation
-
+ 
         private object _currentViewModel;
         public object CurrentViewModel
         {
@@ -25,23 +25,23 @@ namespace FulbankApp.ViewModels
                 SetProperty(ref _currentViewModel, value);
             }
         }
-
+ 
         public ICommand NavigateCommand { get; }
-
+ 
         public MainViewModel()
         {
             // Initialiser la première vue (ex: Login)
             CurrentViewModel = new LoginViewModel();
-
+ 
             // La commande de navigation est ici
             NavigateCommand = new RelayCommand<string>(ExecuteNavigation);
         }
-
-
+ 
+ 
         private void ExecuteNavigation(object parameter)
         {
             string viewName = parameter?.ToString();
-
+ 
             switch (viewName)
             {
                 case "BankAccounts":
@@ -68,9 +68,9 @@ namespace FulbankApp.ViewModels
                     break;
             }
         }
-
+ 
         #endregion
-
-
+ 
+ 
     }
 }

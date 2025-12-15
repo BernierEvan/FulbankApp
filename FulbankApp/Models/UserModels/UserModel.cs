@@ -12,5 +12,6 @@ namespace FulbankApp.Models
         public string Name { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
+        public string Pin { get; set; }
     }
 }

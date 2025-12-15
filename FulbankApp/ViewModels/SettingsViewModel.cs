@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FulbankApp.Helpers;
-
+﻿using FulbankApp.Helpers;
+using System;
 namespace FulbankApp.ViewModels
 {
-    public class SettingsViewModel
+    public class SettingsViewModel : BaseViewModel
     {
         public string PageTitle => "Paramètres";
         public bool SMS_NOTIFICATION = false;
