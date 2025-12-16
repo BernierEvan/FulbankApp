@@ -44,6 +44,7 @@
     <None Remove="assets\images\fulbank_go_back_logo.jpg" />
     <None Remove="assets\images\fulbank_home_page.jpg" />
     <None Remove="assets\images\fulbank_login_page.png" />
+    <None Remove="assets\images\seemless_loading_screen.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -93,6 +94,7 @@
     <Resource Include="assets\images\fulbank_go_back_logo.jpg" />
     <Resource Include="assets\images\fulbank_home_page.jpg" />
     <Resource Include="assets\images\fulbank_login_page.png" />
+    <Resource Include="assets\images\seemless_loading_screen.png" />
   </ItemGroup>
 
 </Project>

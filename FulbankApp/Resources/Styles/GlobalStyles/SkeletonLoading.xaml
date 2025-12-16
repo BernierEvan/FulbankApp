@@ -18,16 +18,16 @@
                     <Storyboard>
 
                         <DoubleAnimation Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[0].Offset"
-                                         From="-1" To="1" Duration="0:0:1.5"
-                                         RepeatBehavior="Forever"/>
+                                     From="-1" To="1" Duration="0:0:1.5"
+                                     RepeatBehavior="Forever"/>
 
                         <DoubleAnimation Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[1].Offset"
-                                         From="-0.5" To="1.5" Duration="0:0:1.5"
-                                         RepeatBehavior="Forever"/>
+                                     From="-0.5" To="1.5" Duration="0:0:1.5"
+                                     RepeatBehavior="Forever"/>
 
                         <DoubleAnimation Storyboard.TargetProperty="(Border.Background).(LinearGradientBrush.GradientStops)[2].Offset"
-                                         From="0" To="2" Duration="0:0:1.5"
-                                         RepeatBehavior="Forever"/>
+                                     From="0" To="2" Duration="0:0:1.5"
+                                     RepeatBehavior="Forever"/>
 
                     </Storyboard>
                 </BeginStoryboard>

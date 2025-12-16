@@ -20,7 +20,7 @@ namespace FulbankApp.View.Skeletons
     {
         public WalletSkeletonView()
         {
-            InitializeComponent();
+            
         }
     }
 }

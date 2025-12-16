@@ -1,82 +1,95 @@
-﻿using FulbankApp.Helpers;
-using FulbankApp.ViewModels;
+﻿using FulbankApp.Helpers; // Pour RelayCommand
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
-// Supprimez les using INotifyPropertyChanged si vous les aviez
-// ...
 
 namespace FulbankApp.ViewModels
 {
-    // ➡️ HÉRITE DE BASEVIEWMODEL 
-    // (qui contient maintenant tout le code de INotifyPropertyChanged)
     public class MainViewModel : BaseViewModel
     {
-        #region Navigation
+        // === PROPRIÉTÉS ===
 
         private object _currentViewModel;
         public object CurrentViewModel
         {
-            get { return _currentViewModel; }
-            set
-            {
-                // ➡️ Utilisation de SetProperty hérité
-                SetProperty(ref _currentViewModel, value);
-            }
+            get => _currentViewModel;
+            set { _currentViewModel = value; OnPropertyChanged(); }
         }
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set { _isLoading = value; OnPropertyChanged(); }
+        }
+
+        // === COMMANDE ===
         public ICommand NavigateCommand { get; }
 
+        // === CONSTRUCTEUR ===
         public MainViewModel()
         {
-            // Initialiser la première vue (ex: Login)
+            // Vue par défaut
             CurrentViewModel = new HomeViewModel();
-
-            // La commande de navigation est ici
-            NavigateCommand = new RelayCommand<string>(ExecuteNavigation);
+            NavigateCommand = new RelayCommand<string>(async (page) => await Navigate(page));
         }
 
-
-        private void ExecuteNavigation(object parameter)
+        // === LOGIQUE DE NAVIGATION CENTRALISÉE ===
+        public async Task Navigate(string pageKey)
         {
-            string viewName = parameter?.ToString();
+            if (string.IsNullOrEmpty(pageKey)) return;
 
-            switch (viewName)
+            // 1. Activer l'écran de chargement
+            IsLoading = true;
+
+            // Petit délai pour que l'UI ait le temps d'afficher le loader
+            await Task.Delay(100);
+
+            try
             {
-                case "BankAccounts":
-                    CurrentViewModel = new BankAccountViewModel();
-                    break;
-                case "Wallet":
-                    CurrentViewModel = new WalletViewModel();
-                    break;
-                case "Transfer":
-                    CurrentViewModel = new TransferViewModel();
-                    break;
-                case "Login":
-                    CurrentViewModel = new LoginViewModel();
-                    break;
-                case "Home":
-                    CurrentViewModel = new HomeViewModel();
-                    break;
-                case "Convert":
-                    CurrentViewModel = new ConvertViewModel();
-                    break;
-                case "Beneficiaries":
-                    CurrentViewModel = new BeneficiariesViewModel();
-                    break;
-                case "Settings":
-                    CurrentViewModel = new SettingsViewModel();
-                    break;
-                // Ajoutez d'autres cas pour Settings, etc.
-                default:
-                    // Gérer les cas par défaut ou les erreurs
-                    break;
+                // === CORRECTION ICI ===
+                // On ajoute <object> juste après Task.Run pour fixer le type de retour.
+                object nextView = await Task.Run<object>(() =>
+                {
+                    // Simulation de travail (synchrones ici car on est dans un thread séparé)
+                    System.Threading.Thread.Sleep(1000);
+
+                    // On retourne les ViewModels. Comme ils héritent tous de BaseViewModel,
+                    // ils sont compatibles avec "object".
+                    switch (pageKey)
+                    {
+                        case "Home": return new HomeViewModel();
+                        case "Wallet": return new WalletViewModel();
+                        case "BankAccounts": return new BankAccountViewModel();
+                        case "Transfer": return new TransferViewModel();
+                        case "Convert": return new ConvertViewModel();
+                        case "Beneficiaries": return new BeneficiariesViewModel();
+                        case "Settings": return new SettingsViewModel();
+                        case "Login": return new LoginViewModel();
+                        default: return null;
+                    }
+                });
+
+                // 2. Mise à jour de l'UI (Retour sur le thread principal)
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (nextView != null)
+                    {
+                        CurrentViewModel = nextView;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur de navigation : {ex.Message}");
+            }
+            finally
+            {
+                // 3. Désactiver le chargement
+                await Task.Delay(200);
+                IsLoading = false;
             }
         }
-
-        #endregion
-
-
     }
 }

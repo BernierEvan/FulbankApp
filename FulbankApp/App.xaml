@@ -2,14 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:FulbankApp"
+             xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+             xmlns:view="clr-namespace:FulbankApp.View"
              StartupUri="View/MainWindow.xaml">
     <Application.Resources>
-
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-
-                <ResourceDictionary Source="/Resources/Templates.xaml"/>
-
                 <ResourceDictionary Source="/Resources/Styles/UserControlStyles/BankAccountStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/UserControlStyles/BeneficiariesStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/UserControlStyles/ConvertStyles.xaml"/>
@@ -21,13 +19,44 @@
                 <ResourceDictionary Source="/Resources/Styles/UserControlStyles/WalletStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/GlobalStyles/ColorsStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/GlobalStyles/ButtonsStyles.xaml"/>
-                <ResourceDictionary Source="/Resources/Styles/GlobalStyles/ColorsStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/GlobalStyles/FontsStyles.xaml"/>
-                <ResourceDictionary Source="/Resources/Styles/GlobalStyles/Loading.xaml"/>
-
-
+                <ResourceDictionary Source="/Resources/Styles/GlobalStyles/SkeletonLoading.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
 
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+            <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+                <view:HomeView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:WalletViewModel}">
+                <view:WalletView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:BankAccountViewModel}">
+                <view:BankAccountView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:TransferViewModel}">
+                <view:TransferView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:ConvertViewModel}">
+                <view:ConvertView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:BeneficiariesViewModel}">
+                <view:BeneficiariesView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                <view:SettingsView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+                <view:LoginView />
+            </DataTemplate>
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

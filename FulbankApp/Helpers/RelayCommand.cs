@@ -18,30 +18,8 @@ namespace FulbankApp.Helpers
             _canExecute = canExecute;
         }
 
-        // ... Implémentation de ICommand (CanExecute, Execute, CanExecuteChanged)
-        public event EventHandler CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-        public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
-        public void Execute(object parameter) => _execute();
-    }
-
-    public class RelayCommand<T> : ICommand
-    {
-        // Notez l'utilisation de T (le type du paramètre)
-        private readonly Action<T> _execute;
-        private readonly Func<T, bool> _canExecute;
-
-        public RelayCommand(Action<T> execute, Func<T, bool> canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        // ... Implémentation de ICommand pour la version générique
-        public event EventHandler CanExecuteChanged
+        // === CORRECTION ICI AUSSI ===
+        public event EventHandler? CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
@@ -49,15 +27,41 @@ namespace FulbankApp.Helpers
 
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null || (parameter is T t && _canExecute(t));
+            return _canExecute == null || _canExecute();
         }
 
         public void Execute(object parameter)
         {
-            if (parameter is T t)
-            {
-                _execute(t);
-            }
+            _execute();
+        }
+    }
+
+    public class RelayCommand<T> : ICommand
+    {
+        private readonly Action<T> _execute;
+        private readonly Predicate<T> _canExecute;
+
+        public RelayCommand(Action<T> execute, Predicate<T> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        // === CORRECTION ICI : Ajout du point d'interrogation ===
+        public event EventHandler? CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute((T)parameter);
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute((T)parameter);
         }
     }
 }

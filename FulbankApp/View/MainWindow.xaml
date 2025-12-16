@@ -5,18 +5,77 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FulbankApp"
         xmlns:vm="clr-namespace:FulbankApp.ViewModels"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
         Title="FulbankApp"
         WindowState="Maximized"
         WindowStyle="SingleBorderWindow"
         ResizeMode="CanMinimize">
-    
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
     <Window.DataContext>
-        <vm:MainViewModel
-            />
+        <vm:MainViewModel />
     </Window.DataContext>
 
     <Grid>
         <ContentControl Content="{Binding CurrentViewModel}"/>
+
+        <Grid Panel.ZIndex="1000" 
+      Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+            <Border Background="#CC000000"/>
+
+            <Canvas ClipToBounds="True" Width="1920" Height="1080" 
+            VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                <Canvas.Resources>
+                    <Style x:Key="ScrollingImageStyle" TargetType="Image">
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <TranslateTransform X="0"/>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="Visibility" Value="Visible">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                     From="0" To="-1920" Duration="0:0:10" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Canvas.Resources>
+
+                <Image Source="/assets/images/seemless_loading_screen.png" 
+               Width="1920" Height="1080" Stretch="UniformToFill"
+               Canvas.Left="0"
+               Style="{StaticResource ScrollingImageStyle}"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                <Image Source="/assets/images/seemless_loading_screen.png" 
+               Width="1920" Height="1080" Stretch="UniformToFill"
+               Canvas.Left="1919"
+               Style="{StaticResource ScrollingImageStyle}"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                <Image gif:ImageBehavior.AnimatedSource="/assets/characters/default_male/animations/walk/gifs/walk_right.gif"
+               Height="500" Canvas.Left="300" Canvas.Top="500"/>
+
+                <TextBlock Text="Chargement..." Foreground="White" FontSize="60" FontWeight="Bold"
+                   Canvas.Left="750" Canvas.Top="450">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.8"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+
+            </Canvas>
+        </Grid>
     </Grid>
 </Window>

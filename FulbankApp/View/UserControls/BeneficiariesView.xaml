@@ -24,7 +24,7 @@
 
             <Button Grid.Column="0" 
                     Content="Home" 
-                    Command="{Binding NavigateCommand}" 
+                    Click="NavigateButton_Click"
                     CommandParameter="Home" 
                     Style="{StaticResource NavButtonStyle}"  
                     Tag="Home" 

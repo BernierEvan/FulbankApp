@@ -591,7 +591,7 @@
                                         Margin="0,0,30,0"/>
 
                                 <Button Content="Bank Accounts" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="BankAccounts" Style="{StaticResource NavButtonStyle}"  Tag="BankAccounts" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Wallet" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Wallet" Style="{StaticResource NavButtonStyle}"  Tag="Wallet" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Wallet" Click="Button_Click" Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="Wallet" Style="{StaticResource NavButtonStyle}"  Tag="Wallet" FontSize="28" Margin="0,0,30,0"/>
                                 <Button Content="Make a Transfer" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Transfer" Style="{StaticResource NavButtonStyle}"  Tag="Transfer" FontSize="28" Margin="0,0,30,0"/>
                                 <Button Content="Convert" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Convert" Style="{StaticResource NavButtonStyle}"  Tag="Convert" FontSize="28" Margin="0,0,30,0"/>
                                 <Button Content="Beneficiaries" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Beneficiaries" Style="{StaticResource NavButtonStyle}"  Tag="Beneficiaries" FontSize="28" Margin="0,0,30,0"/>

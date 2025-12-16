@@ -805,59 +805,60 @@ namespace FulbankApp.View
 
         private async void NavigateToPage(Button button)
         {
-            var main = Application.Current.MainWindow as MainWindow;
-            if (main == null) { RestoreCanvasState(); return; }
+            // 1. Récupération du ViewModel
+            var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
+            if (mainVM == null) return;
 
-            string key = button.Tag.ToString();
+            string key = button.Tag?.ToString();
+            if (string.IsNullOrEmpty(key)) return;
 
-            // 1. OBTENIR ET AFFICHER LE SQUELETTE
-            UserControl skeletonView = GetSkeletonView(key);
+            // 2. Activer l'écran de chargement
+            mainVM.IsLoading = true;
 
-            // On affiche le squelette immédiatement
-            main.Content = skeletonView;
+            // Laisser le temps à l'UI d'afficher le chargement (100ms)
+            await Task.Delay(100);
 
-            // (Optionnel) Force l'UI à se rafraîchir pour afficher le squelette tout de suite
-            await Task.Delay(50);
-
-            UserControl realView = null;
             try
             {
-                // 2. SIMULATION DE CHARGEMENT / CHARGEMENT RÉEL
-                // C'est ici que l'effet Skeleton brille. On attend un peu pour que
-                // l'utilisateur voit l'animation, ou le temps que les données arrivent.
-                await Task.Delay(800); // 800ms de skeleton pour l'effet fluide
-
-                // 3. CRÉATION DE LA VRAIE VUE
-                realView = key switch
+                // 3. Charger le prochain ViewModel dans une tâche de fond
+                // CORRECTION ICI : On utilise Task.Run<object> et pas de async/await inutile dedans
+                object nextViewModel = await Task.Run<object>(() =>
                 {
-                    "BankAccounts" => new BankAccountView(),
-                    "Wallet" => new WalletView(),
-                    "Transfer" => new TransferView(),
-                    "Convert" => new ConvertView(),
-                    "Beneficiaries" => new BeneficiariesView(),
-                    "Settings" => new SettingsView(),
-                    _ => null
-                };
+                    // Simulation du temps de chargement (1.5 secondes)
+                    // Utiliser Thread.Sleep ici est correct car on est dans un Task.Run (thread séparé)
+                    System.Threading.Thread.Sleep(1500);
 
-                if (realView != null)
+                    // Création du ViewModel selon la clé
+                    switch (key)
+                    {
+                        case "BankAccounts": return new BankAccountViewModel();
+                        case "Wallet": return new WalletViewModel();
+                        case "Transfer": return new TransferViewModel();
+                        case "Convert": return new ConvertViewModel();
+                        case "Beneficiaries": return new BeneficiariesViewModel();
+                        case "Settings": return new SettingsViewModel();
+                        default: return null;
+                    }
+                });
+
+                // 4. Mise à jour de l'interface (sur le Thread UI)
+                if (nextViewModel != null)
                 {
-                    // Transition vers la vraie vue
-                    main.Content = realView;
-
-                    // Animation d'apparition douce de la vraie vue (Fade In)
-                    realView.Opacity = 0;
-                    var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.4));
-                    realView.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+                    mainVM.CurrentViewModel = nextViewModel;
                 }
                 else
                 {
-                    RestoreCanvasState();
+                    MessageBox.Show($"Page non trouvée : {key}");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Erreur nav: {ex.Message}");
-                RestoreCanvasState();
+                MessageBox.Show($"Erreur : {ex.Message}");
+            }
+            finally
+            {
+                // 5. Désactiver le chargement
+                mainVM.IsLoading = false;
             }
         }
 
