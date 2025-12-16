@@ -31,42 +31,59 @@
             <Canvas ClipToBounds="True" Width="1920" Height="1080" 
             VerticalAlignment="Center" HorizontalAlignment="Center">
 
-                <Canvas.Resources>
-                    <Style x:Key="ScrollingImageStyle" TargetType="Image">
-                        <Setter Property="RenderTransform">
-                            <Setter.Value>
-                                <TranslateTransform X="0"/>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Visibility, RelativeSource={RelativeSource AncestorType=Grid}}" Value="Visible">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="ScrollAnimation">
-                                        <Storyboard RepeatBehavior="Forever">
-                                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                             From="0" To="-1920" Duration="0:0:10" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="ScrollAnimation"/>
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Canvas.Resources>
+                <Image Source="/assets/images/seemless_loading_screen.png" 
+               Width="1920" Height="1080" Stretch="UniformToFill"
+               Canvas.Left="0" RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image.RenderTransform>
+                        <TranslateTransform X="0"/>
+                    </Image.RenderTransform>
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Visibility, RelativeSource={RelativeSource AncestorType=Grid}}" Value="Visible">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard x:Name="Anim1">
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                         From="0" To="-1920" Duration="0:0:10" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="Anim1"/>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
 
                 <Image Source="/assets/images/seemless_loading_screen.png" 
                Width="1920" Height="1080" Stretch="UniformToFill"
-               Canvas.Left="0"
-               Style="{StaticResource ScrollingImageStyle}"
-               RenderOptions.BitmapScalingMode="HighQuality"/>
-
-                <Image Source="/assets/images/seemless_loading_screen.png" 
-               Width="1920" Height="1080" Stretch="UniformToFill"
-               Canvas.Left="1919"
-               Style="{StaticResource ScrollingImageStyle}"
-               RenderOptions.BitmapScalingMode="HighQuality"/>
+               Canvas.Left="1919" RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image.RenderTransform>
+                        <TranslateTransform X="0"/>
+                    </Image.RenderTransform>
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Visibility, RelativeSource={RelativeSource AncestorType=Grid}}" Value="Visible">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard x:Name="Anim2">
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                         From="0" To="-1920" Duration="0:0:10" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="Anim2"/>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
 
                 <Image gif:ImageBehavior.AnimatedSource="/assets/characters/default_male/animations/walk/gifs/walk_right.gif"
                Height="500" Canvas.Left="300" Canvas.Top="500"/>

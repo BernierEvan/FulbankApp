@@ -683,11 +683,11 @@ namespace FulbankApp.View
             if (button == null) return;
             string destination = button.Tag?.ToString();
 
-            // 1. Figer le jeu
+            // 1. FREEZE INPUT IMMEDIATELY
             _movementTimer?.Stop();
             MainCanvas.IsEnabled = false;
 
-            // 2. Animation de sortie
+            // 2. FADE OUT
             var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(300))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
@@ -696,11 +696,10 @@ namespace FulbankApp.View
 
             fadeOut.Completed += (s, args) =>
             {
-                // 3. APPEL AU MAINVIEWMODEL (Navigation propre)
+                // 3. EXECUTE NAVIGATION COMMAND
                 var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
                 if (mainVM != null && !string.IsNullOrEmpty(destination))
                 {
-                    // C'est cette ligne qui fait le travail sans bug
                     if (mainVM.NavigateCommand.CanExecute(destination))
                         mainVM.NavigateCommand.Execute(destination);
                 }
