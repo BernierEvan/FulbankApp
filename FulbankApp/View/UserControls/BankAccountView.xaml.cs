@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using FulbankApp.Data;
+using FulbankApp.ViewModels;
 
 namespace FulbankApp.View
 {
@@ -23,6 +25,27 @@ namespace FulbankApp.View
         public BankAccountView()
         {
             InitializeComponent();
+            this.DataContext = new BankAccountViewModel();
         }
+
+        private void NavigateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var main = Application.Current.MainWindow as MainWindow;
+            if (main == null) return;
+
+            var btn = sender as Button;
+            string key = btn.Tag.ToString();
+
+            switch (key)
+            {
+                case "Home":
+                    main.Content = new HomeView();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        
     }
 }

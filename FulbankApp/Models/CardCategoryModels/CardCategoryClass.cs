@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace FulbankApp.Models.CardCategoryModels
 {
-    public class CardCategoryClass
+    [Table("CardCategory")]
+    public class CardCategory
     {
-        private int Id { get; set; }
+        [Key]
+        public int IdCardCategory { get; set; }
 
-        private string Label { get; set; }
-
-        public CardCategoryClass(int id, string label)
-        {
-            Id = id;
-            Label = label;
-        }
+        [StringLength(50)]
+        public string Label { get; set; }
     }
 }

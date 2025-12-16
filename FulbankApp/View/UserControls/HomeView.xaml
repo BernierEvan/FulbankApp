@@ -590,18 +590,18 @@
                                         VerticalAlignment="Center" 
                                         Margin="0,0,30,0"/>
 
-                                <Button Content="Bank Accounts" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="BankAccounts" Style="{StaticResource NavButtonStyle}"  Tag="BankAccounts" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Wallet" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Wallet" Style="{StaticResource NavButtonStyle}"  Tag="Wallet" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Make a Transfer" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Transfer" Style="{StaticResource NavButtonStyle}"  Tag="Transfer" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Convert" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Convert" Style="{StaticResource NavButtonStyle}"  Tag="Convert" FontSize="28" Margin="0,0,30,0"/>
-                                <Button Content="Beneficiaries" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Beneficiaries" Style="{StaticResource NavButtonStyle}"  Tag="Beneficiaries" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Bank Accounts" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="BankAccounts" Style="{StaticResource NavButtonStyle}"  Tag="BankAccounts" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Wallet" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Wallet" Style="{StaticResource NavButtonStyle}"  Tag="Wallet" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Make a Transfer" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Transfer" Style="{StaticResource NavButtonStyle}"  Tag="Transfer" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Convert" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Convert" Style="{StaticResource NavButtonStyle}"  Tag="Convert" FontSize="28" Margin="0,0,30,0"/>
+                                <Button Content="Beneficiaries" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Beneficiaries" Style="{StaticResource NavButtonStyle}"  Tag="Beneficiaries" FontSize="28" Margin="0,0,30,0"/>
 
 
                             </StackPanel>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
-                                <Button Content="⚙️ Settings" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Settings" Style="{StaticResource NavButtonStyle}" Tag="Settings" Padding="15,0" FontSize="28"/>
+                                <Button Content="⚙️ Settings" Click="Button_Click" Command="{Binding NavigateCommand}" CommandParameter="Settings" Style="{StaticResource NavButtonStyle}" Tag="Settings" Padding="15,0" FontSize="28"/>
 
                                 <ComboBox Width="180"
                                         Height="50"
@@ -651,13 +651,14 @@
 
                 <Button x:Name="CryptoButton"
                     Style="{StaticResource HoverButton}"
+                    Tag="Wallet"
                     Content="Crypto Wallet"
                     Width="240" Height="80"
                     Canvas.Left="1480" 
                     Canvas.Top="450"
                     MouseEnter="Button_MouseEnter"
                     MouseLeave="Button_MouseLeave"
-                    Click="Button_Click"
+                    Click="GameButton_Click"
                     FontSize="24"
                     Cursor="Hand"
                     Opacity="0" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -730,13 +731,14 @@
                 </Button>
                 <Button x:Name="CryptoButton2"
                 Style="{StaticResource HoverButton}"
+                Tag="BankAccounts"
                 Content="Fiat Wallet"
                 Width="240" Height="80"
                 Canvas.Left="765" 
                 Canvas.Top="355"
                 MouseEnter="Button2_MouseEnter"
                 MouseLeave="Button2_MouseLeave"
-                Click="Button_Click"
+                Click="GameButton_Click"
                 FontSize="24"
                 Cursor="Hand"
                 Opacity="0" HorizontalAlignment="Left" VerticalAlignment="Top">

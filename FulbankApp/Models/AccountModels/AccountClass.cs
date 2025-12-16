@@ -1,32 +1,38 @@
-﻿using FulbankApp.Models.MoneyModels;
+﻿using FulbankApp.Models.FiatModels;
+using FulbankApp.Models.BeneficiariesModels;
+
 using FulbankApp.Models.SubscriptionModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace FulbankApp.Models.AccountModels
 {
+    [Table("Account")]
     public class AccountClass
     {
-        public int Id { get; set; }
-        public string AccountNumber { get; set; }
-        public decimal Balance { get; set; }
+        [Key]
+        public int IdAccount { get; set; }
 
-        private SubscriptionClass Subscription { get; set; }
+        public int Balance { get; set; }
+        public int Limit { get; set; }
 
-        private FiatClass Currency { get; set; }
+        public int IdSubscribtion { get; set; }
+        public int IdFiat { get; set; }
+        public int IdUser { get; set; }
 
-        private UserModel UserAccount { get; set; }
+        // Navigations
+        [ForeignKey("IdSubscribtion")]
+        public virtual SubscriptionClass Subscription { get; set; }
 
-        public AccountClass(int id, string accountNumber, decimal balance, SubscriptionClass subscription, FiatClass currency, UserModel userAccount)
-        {
-            Id = id;
-            AccountNumber = accountNumber;
-            Balance = balance;
-            Subscription = subscription;
-            Currency = currency;
-            UserAccount = userAccount;
-        }
+        [ForeignKey("IdFiat")]
+        public virtual FiatClass Fiat { get; set; }
 
+        [ForeignKey("IdUser")]
+        public virtual UserClass User { get; set; }
+
+        public virtual ICollection<BeneficiaryClass> Beneficiaries { get; set; }
     }
 }

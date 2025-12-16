@@ -12,10 +12,13 @@
 
         <!-- HEADER -->
         <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">
+
             <Grid>
+                <Button Content="X" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Home" Style="{StaticResource NavButtonStyle}"  Tag="Home" FontSize="20" Margin="10,16,754,21" Height="NaN" RenderTransformOrigin="1.162,0.697"/>
+
                 <TextBlock Text="Paramètres"
                            Foreground="White" FontSize="24" FontWeight="Bold"
-                           VerticalAlignment="Center" Margin="20,0,0,0"/>
+                           VerticalAlignment="Top" Margin="95,17,530,0" RenderTransformOrigin="0.846,0.594"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                             VerticalAlignment="Center" Margin="0,0,20,0">
                     <TextBlock Text="Evan" Foreground="White" FontSize="16"

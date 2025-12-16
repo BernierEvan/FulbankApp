@@ -23,6 +23,7 @@
                 <ResourceDictionary Source="/Resources/Styles/GlobalStyles/ButtonsStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/GlobalStyles/ColorsStyles.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles/GlobalStyles/FontsStyles.xaml"/>
+                <ResourceDictionary Source="/Resources/Styles/GlobalStyles/Loading.xaml"/>
 
 
             </ResourceDictionary.MergedDictionaries>

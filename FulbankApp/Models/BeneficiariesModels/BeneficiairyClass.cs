@@ -1,34 +1,27 @@
 ﻿using FulbankApp.Models.AccountModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace FulbankApp.Models.BeneficiariesModels
 {
-    public class BeneficiairyClass
+    [Table("Beneficiary")]
+    public class BeneficiaryClass
     {
-        private int Id { get; set; }
-        private AccountClass Account { get; set; }
+        [Key]
+        public int IdBeneficiaryTable { get; set; }
 
-        private string Name { get; set; }
+        [StringLength(50)]
+        public string BeneficaryName { get; set; }
 
-        private DateOnly CreatedAt { get; set; }
+        public DateTime? BeneficaryBirthDate { get; set; }
+        public DateTime? CreatedAt { get; set; }
 
-        private AccountClass AccountBeneficiairy { get; set; }
-        private UserModel UserBeneficiairy { get; set; }
+        public int IdAccount { get; set; }
 
-        public BeneficiairyClass(int id, AccountClass account, string name, DateOnly createdAt, AccountClass accountBeneficiairy, UserModel userBeneficiairy)
-        {
-            Id = id;
-            Account = account;
-            Name = name;
-            CreatedAt = createdAt;
-            AccountBeneficiairy = accountBeneficiairy;
-            UserBeneficiairy = userBeneficiairy;
-        }
-
-
-
-
+        [ForeignKey("IdAccount")]
+        public virtual AccountClass Account { get; set; }
     }
 }

@@ -2,32 +2,31 @@
 using FulbankApp.Models.CardCategoryModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using FulbankApp.Models.CheckingAccountModels;
 
 namespace FulbankApp.Models.CardModels
 {
+    [Table("Card")]
     public class CardClass
     {
-        private int Id { get; set; }
+        [Key]
+        public int IdCard { get; set; }
 
-        private string Number { get; set; }
+        [StringLength(50)]
+        public string Label { get; set; }
 
-        private DateOnly ExpirationDate { get; set; }
+        public decimal Fees { get; set; }
 
-        private string cvv { get; set; }
+        public int IdAccount { get; set; } // Référence CheckingAccount
+        public int IdCardCategory { get; set; }
 
-        private CardCategoryClass Category { get; set; }
+        [ForeignKey("IdAccount")]
+        public virtual CheckingAccountClass CheckingAccount { get; set; }
 
-        private AccountClass Account { get; set; }
-
-        public CardClass(int id, string number, DateOnly expirationDate, string cvv, CardCategoryClass category, AccountClass account)
-        {
-            Id = id;
-            Number = number;
-            ExpirationDate = expirationDate;
-            this.cvv = cvv;
-            Category = category;
-            Account = account;
-        }
+        [ForeignKey("IdCardCategory")]
+        public virtual CardCategory Category { get; set; }
     }
 }

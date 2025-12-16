@@ -8,11 +8,11 @@ namespace FulbankApp.Models
     public interface IuserRepository
     {
         bool AuthenticateUser(NetworkCredential credential);
-        void Add(UserModel userModel);
-        void Edit(UserModel userModel);
+        void Add(UserClass userModel);
+        void Edit(UserClass userModel);
         void Remove(int id);
-        UserModel GetById(int id);
-        UserModel GetByUsername(string username);
-        IEnumerable<UserModel> GetByAll();
+        UserClass GetById(int id);
+        UserClass GetByUsername(string username);
+        IEnumerable<UserClass> GetByAll();
     }
 }

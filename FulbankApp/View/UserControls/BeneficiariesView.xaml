@@ -4,22 +4,46 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:FulbankApp.View"
-             xmlns:v="clr-namespace:FulbankApp.View"
              xmlns:vm="clr-namespace:FulbankApp.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+             d:DesignHeight="600" d:DesignWidth="1000">
 
-        <!-- HEADER -->
-        <Grid Background="#1A4A8F" Height="70" VerticalAlignment="Top">
-            <TextBlock Text="Gestion des bénéficiaires"
+    <Grid Background="#F5F7FA">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="#1A4A8F" Height="70">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" 
+                    Content="Home" 
+                    Command="{Binding NavigateCommand}" 
+                    CommandParameter="Home" 
+                    Style="{StaticResource NavButtonStyle}"  
+                    Tag="Home" 
+                    FontSize="20" 
+                    Margin="20,0,0,0" 
+                    VerticalAlignment="Center"/>
+
+            <TextBlock Grid.Column="1" 
+                       Text="Gestion des bénéficiaires"
                        VerticalAlignment="Center"
-                       Margin="20,0"
+                       HorizontalAlignment="Center"
                        Foreground="White"
                        FontSize="24"
                        FontWeight="Bold"/>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
+            <StackPanel Grid.Column="2" 
+                        Orientation="Horizontal" 
+                        VerticalAlignment="Center" 
+                        Margin="0,0,20,0">
                 <TextBlock Text="Evan"
                            Foreground="White"
                            FontSize="16"
@@ -30,59 +54,74 @@
         </Grid>
 
 
-        <!-- MAIN CONTENT -->
-        <Grid Margin="0,90,0,40">
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- LEFT — Add New Beneficiary -->
-            <Border Background="White"
+            <Border Grid.Column="0" 
+                    Background="White"
                     CornerRadius="15"
                     Padding="25"
-                    Margin="20"
+                    Margin="0,0,10,0"
                     BorderBrush="#D9DFE7"
                     BorderThickness="1">
-                <StackPanel>
 
+                <StackPanel>
                     <TextBlock Text="Ajouter un bénéficiaire"
                                FontSize="20"
                                FontWeight="Bold"
                                Foreground="#1A4A8F"
                                Margin="0,0,0,20"/>
 
-                    <!-- Name -->
-                    <TextBlock Text="Nom du bénéficiaire" Margin="0,10,0,5"/>
-                    <TextBox Height="35"/>
+                    <TextBlock Text="Nom du bénéficiaire" Margin="0,10,0,5" Foreground="#555"/>
+                    <TextBox Height="35" 
+                             VerticalContentAlignment="Center" 
+                             Padding="5"
+                             Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <!-- IBAN -->
-                    <TextBlock Text="IBAN" Margin="0,15,0,5"/>
-                    <TextBox Height="35"/>
+                    <TextBlock Text="FBAN" Margin="0,15,0,5" Foreground="#555"/>
+                    <TextBox Height="35" 
+                             VerticalContentAlignment="Center" 
+                             Padding="5"
+                             Text="{Binding NewIBAN, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <!-- Note -->
-                    <TextBlock Text="Note (optionnel)" Margin="0,15,0,5"/>
-                    <TextBox Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    <TextBlock Text="Note (optionnel)" Margin="0,15,0,5" Foreground="#555"/>
+                    <TextBox Height="60" 
+                             TextWrapping="Wrap" 
+                             AcceptsReturn="True" 
+                             Padding="5"
+                             Text="{Binding NewNote, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <!-- Button -->
                     <Button Content="Ajouter le bénéficiaire"
+                            Command="{Binding AddBeneficiaryCommand}"
                             Background="#1A4A8F"
                             Foreground="White"
                             Padding="12"
                             FontSize="16"
                             BorderThickness="0"
-                            Margin="0,20,0,0"/>
+                            Margin="0,25,0,0">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
                 </StackPanel>
             </Border>
 
 
-            <!-- RIGHT — Beneficiaries List -->
             <Border Grid.Column="1"
                     Background="White"
                     CornerRadius="15"
                     Padding="20"
-                    Margin="20"
+                    Margin="10,0,0,0"
                     BorderBrush="#D9DFE7"
                     BorderThickness="1">
+
                 <DockPanel>
 
-                    <!-- Title -->
                     <TextBlock Text="Liste des bénéficiaires"
                                FontSize="20"
                                FontWeight="Bold"
@@ -90,55 +129,36 @@
                                DockPanel.Dock="Top"
                                Margin="0,0,0,20"/>
 
-                    <!-- Search -->
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,15">
                         <TextBox Width="250"
-                                 Height="32"
-                                 Margin="0,0,10,0"/>
+                                 Height="35"
+                                 VerticalContentAlignment="Center"
+                                 Padding="5"
+                                 Margin="0,0,10,0"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Tag="Rechercher par nom..."/>
+
                         <Button Content="Rechercher"
+                                Command="{Binding SearchCommand}"
                                 Background="#1A4A8F"
                                 Foreground="White"
-                                Padding="8"
-                                BorderThickness="0"
-                                />
+                                Padding="15,0"
+                                BorderThickness="0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </StackPanel>
 
-                    <!-- DataGrid -->
-                    <DataGrid x:Name="BeneficiariesGrid"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              Background="White"
-                              BorderThickness="0"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="None"
-                              RowHeight="40"
-                              Margin="0,10,0,0">
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Nom" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="IBAN" Binding="{Binding IBAN}" Width="*"/>
-                            <DataGridTextColumn Header="Note" Binding="{Binding Note}" Width="2*"/>
-
-                            <!-- Delete Button -->
-                            <DataGridTemplateColumn Header="Supprimer" Width="110">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="Supprimer"
-                                                Background="#C62828"
-                                                Foreground="White"
-                                                Padding="5"
-                                                BorderThickness="0"
-                                                />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-
-                    </DataGrid>
+                    <DataGrid x:Name="BeneficiariesGrid" 
+                  ItemsSource="{Binding Beneficiaries}" 
+                  AutoGenerateColumns="True" 
+                  Margin="10" />
                 </DockPanel>
             </Border>
 
         </Grid>
-            
     </Grid>
 </UserControl>

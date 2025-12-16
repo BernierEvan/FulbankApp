@@ -25,9 +25,22 @@ namespace FulbankApp.View
             InitializeComponent();
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void NavigateButton_Click(object sender, RoutedEventArgs e)
         {
+            var main = Application.Current.MainWindow as MainWindow;
+            if (main == null) return;
 
+            var btn = sender as Button;
+            string key = btn.Tag.ToString();
+
+            switch (key)
+            {
+                case "Home":
+                    main.Content = new HomeView();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

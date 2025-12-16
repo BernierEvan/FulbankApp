@@ -1,25 +1,28 @@
-﻿using FulbankApp.Models.WalletModels;
+﻿using FulbankApp.Models.WalletCryptoLinkModels;
+using FulbankApp.Models.WalletModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace FulbankApp.Models.CryptoModels
 {
+    [Table("Crypto")]
     public class CryptoClass
     {
-        private int Id { get; set; }
+        [Key]
+        public int IdCrypto { get; set; }
 
-        private string Label { get; set; }
+        [StringLength(50)]
+        public string Label { get; set; }
 
-        private string Symbol { get; set; }
+        [StringLength(50)]
+        public string Symbol { get; set; }
 
-        private WalletClass Wallet { get; set; }
+        public int IdWalletCryptoLink { get; set; }
 
-        public CryptoClass(int id, string label, string symbol)
-        {
-            Id = id;
-            Label = label;
-            Symbol = symbol;
-        }
+        [ForeignKey("IdWalletCryptoLink")]
+        public virtual WalletCryptoLinkClass WalletCryptoLink { get; set; }
     }
 }

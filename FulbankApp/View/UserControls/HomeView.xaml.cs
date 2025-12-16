@@ -1,10 +1,13 @@
 ﻿using FulbankApp.Helpers;
 using FulbankApp.Models;
 using FulbankApp.Services;
+using FulbankApp.View.Skeletons;
+using FulbankApp.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO; // ajouté pour fallback chargement image
 using System.Linq;
-using Numeric = System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,8 +21,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using FulbankApp.ViewModels;
-using System.IO; // ajouté pour fallback chargement image
+using Numeric = System.Numerics;
 
 namespace FulbankApp.View
 {
@@ -694,43 +696,237 @@ namespace FulbankApp.View
 
         #endregion
 
-        #region Boutons / Navigation (inchangés)
+        #region Boutons / Navigation
+
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var storyboard = CreateButtonClickZoomAnimation();
-            storyboard.Begin();
+            var button = sender as Button;
+            if (button == null) return;
+
+            // 1. Figer le jeu : désactiver les mouvements et interactions
+            _movementTimer?.Stop();
+            MainCanvas.IsEnabled = false;
+
+            // 2. Créer l'animation de fondu de sortie (Fade Out simple)
+            var fadeOut = new DoubleAnimation
+            {
+                From = 1.0,
+                To = 0.0,
+                Duration = TimeSpan.FromMilliseconds(300), // 300ms est fluide et rapide
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
+                FillBehavior = FillBehavior.Stop
+            };
+
+            // 3. Au moment où le fondu est terminé, on lance la navigation
+            fadeOut.Completed += (s, args) =>
+            {
+                // On force l'opacité à 0 pour éviter le "flash" avant que la nouvelle page ne charge
+                MainCanvas.Opacity = 0;
+
+                // Appel de votre fonction de navigation existante (qui gère le Skeleton)
+                NavigateToPage(button);
+            };
+
+            // 4. Lancer l'animation sur le Canvas
+            MainCanvas.BeginAnimation(UIElement.OpacityProperty, fadeOut);
         }
 
-        private void Button_MouseEnter(object sender, MouseEventArgs e) => ZoomOnButton(CryptoButton);
-        private void Button_MouseLeave(object sender, MouseEventArgs e) => ResetCanvasZoom();
-        private void Button2_MouseEnter(object sender, MouseEventArgs e) => ZoomOnButton(CryptoButton2);
-        private void Button2_MouseLeave(object sender, MouseEventArgs e) => ResetCanvasZoom();
+
+        private void GameButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button == null) return;
+
+            // --- NOUVEAU CODE : CENTRAGE DU ZOOM ---
+
+            // 1. Calculer le centre du bouton (Point(Width/2, Height/2))
+            // 2. Transformer ce point pour obtenir ses coordonnées relatives au MainCanvas
+            Point centerOfButton = button.TransformToAncestor(MainCanvas)
+                                         .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
+
+            // 3. Convertir en coordonnées relatives (0.0 à 1.0) pour RenderTransformOrigin
+            // Ex: Si le canvas fait 1000px et le bouton est à 500px, on veut 0.5
+            double originX = centerOfButton.X / MainCanvas.ActualWidth;
+            double originY = centerOfButton.Y / MainCanvas.ActualHeight;
+
+            // 4. Appliquer l'origine au Canvas
+            MainCanvas.RenderTransformOrigin = new Point(originX, originY);
+
+            // ---------------------------------------
+
+            // 1. Désactiver les interactions
+            _movementTimer?.Stop();
+            MainCanvas.IsEnabled = false;
+
+            // 2. Créer et lancer l'animation (le zoom partira maintenant du bouton)
+            var storyboard = CreateButtonClickZoomAnimation();
+
+            // 3. Définir la fin de l'animation
+            storyboard.Completed += (s, args) =>
+            {
+                MainCanvas.Opacity = 0;
+                NavigateToPage(button);
+            };
+
+            storyboard.Begin();
+        }
 
         private Storyboard CreateButtonClickZoomAnimation()
         {
             var storyboard = new Storyboard();
-            AddZoomAnimation(storyboard, 1.0, 1.2, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-            AddZoomAnimation(storyboard, 1.2, 0.9, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-            AddZoomAnimation(storyboard, 0.9, 0.0, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(0.5));
+
+            // 1. Zoom In (0s to 1s)
+            AddZoomAnimation(storyboard, 1.0, 1.3, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
+            // 2. Zoom Out (1s to 2s)
+            AddZoomAnimation(storyboard, 1.3, 1.0, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+
+            // 3. Huge Zoom (2s to 3s)
+            AddZoomAnimation(storyboard, 1.0, 15, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
+
+            // 4. Fade Out
+            // We use FillBehavior.Stop so the animation system releases the 'lock' 
+            // on the Opacity property immediately after finishing.
+            var fadeOutAnimation = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1.0))
+            {
+                BeginTime = TimeSpan.FromSeconds(2.0),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn },
+                FillBehavior = FillBehavior.Stop // <--- CRITICAL CHANGE
+            };
+
+            Storyboard.SetTarget(fadeOutAnimation, MainCanvas);
+            Storyboard.SetTargetProperty(fadeOutAnimation, new PropertyPath("Opacity"));
+
+            storyboard.Children.Add(fadeOutAnimation);
+
             return storyboard;
+        }
+
+        private async void NavigateToPage(Button button)
+        {
+            var main = Application.Current.MainWindow as MainWindow;
+            if (main == null) { RestoreCanvasState(); return; }
+
+            string key = button.Tag.ToString();
+
+            // 1. OBTENIR ET AFFICHER LE SQUELETTE
+            UserControl skeletonView = GetSkeletonView(key);
+
+            // On affiche le squelette immédiatement
+            main.Content = skeletonView;
+
+            // (Optionnel) Force l'UI à se rafraîchir pour afficher le squelette tout de suite
+            await Task.Delay(50);
+
+            UserControl realView = null;
+            try
+            {
+                // 2. SIMULATION DE CHARGEMENT / CHARGEMENT RÉEL
+                // C'est ici que l'effet Skeleton brille. On attend un peu pour que
+                // l'utilisateur voit l'animation, ou le temps que les données arrivent.
+                await Task.Delay(800); // 800ms de skeleton pour l'effet fluide
+
+                // 3. CRÉATION DE LA VRAIE VUE
+                realView = key switch
+                {
+                    "BankAccounts" => new BankAccountView(),
+                    "Wallet" => new WalletView(),
+                    "Transfer" => new TransferView(),
+                    "Convert" => new ConvertView(),
+                    "Beneficiaries" => new BeneficiariesView(),
+                    "Settings" => new SettingsView(),
+                    _ => null
+                };
+
+                if (realView != null)
+                {
+                    // Transition vers la vraie vue
+                    main.Content = realView;
+
+                    // Animation d'apparition douce de la vraie vue (Fade In)
+                    realView.Opacity = 0;
+                    var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(0.4));
+                    realView.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+                }
+                else
+                {
+                    RestoreCanvasState();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Erreur nav: {ex.Message}");
+                RestoreCanvasState();
+            }
+        }
+
+        // Méthode helper pour choisir le bon squelette
+        private UserControl GetSkeletonView(string key)
+        {
+            // Idéalement, retournez un squelette spécifique par page.
+            // Pour l'instant, on peut retourner un squelette générique ou spécifique.
+
+            switch (key)
+            {
+                case "Wallet":
+                    return new WalletSkeletonView(); // Celui qu'on a créé
+
+                case "BankAccounts":
+                    // return new BankAccountsSkeletonView();
+                    return new WalletSkeletonView(); // Recyclage temporaire
+
+                default:
+                    // Un squelette générique par défaut
+                    return new WalletSkeletonView();
+            }
+        }
+
+
+        private void RestoreCanvasState()
+        {
+            // Remettre l'origine du zoom au centre de l'écran par défaut
+            MainCanvas.RenderTransformOrigin = new Point(0.5, 0.5); // <--- AJOUT IMPORTANT
+
+            // Reset Opacity to visible
+            MainCanvas.Opacity = 1.0;
+
+            // Reset Zoom
+            ResetCanvasZoom();
+
+            // Re-enable interaction
+            MainCanvas.IsEnabled = true;
+            _movementTimer?.Start();
+
+            // Redonner le focus au canvas pour que le clavier remarche immédiatement
+            MainCanvas.Focus();
         }
 
         private void AddZoomAnimation(Storyboard storyboard, double from, double to, TimeSpan beginTime, TimeSpan duration)
         {
             var scaleXAnimation = new DoubleAnimation(from, to, duration) { BeginTime = beginTime };
             var scaleYAnimation = new DoubleAnimation(from, to, duration) { BeginTime = beginTime };
+
             Storyboard.SetTarget(scaleXAnimation, MainCanvas);
             Storyboard.SetTarget(scaleYAnimation, MainCanvas);
+
             Storyboard.SetTargetProperty(scaleXAnimation,
                 new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
             Storyboard.SetTargetProperty(scaleYAnimation,
                 new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
+
             storyboard.Children.Add(scaleXAnimation);
             storyboard.Children.Add(scaleYAnimation);
         }
 
+        // --- EMPTY EVENT HANDLERS (Clean these up!) ---
+        private void Button_MouseEnter(object sender, MouseEventArgs e) { }
+        private void Button_MouseLeave(object sender, MouseEventArgs e) { }
+        private void Button2_MouseEnter(object sender, MouseEventArgs e) { }
+        private void Button2_MouseLeave(object sender, MouseEventArgs e) { }
+
         #endregion
+
 
         #region Navigation (inchangés)
 
@@ -741,40 +937,17 @@ namespace FulbankApp.View
 
         private void NavigateButton_Click(object sender, RoutedEventArgs e)
         {
-            var main = Application.Current.MainWindow as MainWindow;
-            if (main == null) return;
-
-            var btn = sender as Button;
-            string key = btn.Tag.ToString();
-
-            switch (key)
+            var storyboard = CreateButtonClickZoomAnimation();
+            storyboard.Completed += async (s, args) =>
             {
-                case "BankAccounts":
-                    main.Content = new BankAccountView();
-                    break;
-
-                case "Wallet":
-                    main.Content = new WalletView();
-                    break;
-
-                case "Transfer":
-                    main.Content = new TransferView();
-                    break;
-
-                case "Convert":
-                    main.Content = new ConvertView();
-                    break;
-
-                case "Beneficiaries":
-                    main.Content = new BeneficiariesView();
-                    break;
-
-                case "Settings":
-                    main.Content = new SettingsView();
-                    break;
-            }
+                
+            };
+            storyboard.Begin();
         }
 
+        
+
+        
         #endregion
     }
 }

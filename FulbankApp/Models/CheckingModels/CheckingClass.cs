@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using FulbankApp.Models.AccountModels;
+using FulbankApp.Models.CardModels;
 
-namespace FulbankApp.Models.CheckingModels
+namespace FulbankApp.Models.CheckingAccountModels
 {
-    public class CheckingClass
+    [Table("CheckingAccount")]
+    public class CheckingAccountClass : AccountClass
     {
-        private int Id { get; set; }
+        // Attention : Votre table CheckingAccount a aussi une colonne "Limit".
+        // Comme la classe mère "Account" a déjà "Limit", il faut distinguer celle-ci.
+        // Je la renomme "CheckingLimit" côté C# pour éviter les conflits, mais elle map sur "Limit" en DB.
 
-        private string Label { get; set; }
+        [Column("Limit")]
+        public int CheckingLimit { get; set; }
 
-        private decimal Overdraft { get; set; }
-
-        private decimal Fees { get; set; }
-
-        public CheckingClass(int id, string label, decimal overdraft, decimal fees)
-        {
-            Id = id;
-            Label = label;
-            Overdraft = overdraft;
-            Fees = fees;
-        }
+        // Navigation vers les cartes
+        public virtual ICollection<CardClass> Cards { get; set; }
     }
 }

@@ -2,47 +2,48 @@
 using FulbankApp.Models.WalletModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using FulbankApp.Models.WalletCryptoLinkModels;
 
 namespace FulbankApp.Models.OperationModels
 {
+    [Table("Operation")]
     public class OperationClass
     {
-        private int Id { get; set; }
+        [Key]
+        public int IdOperation { get; set; }
 
-        private DateOnly Date { get; set; }
+        public DateTime? OperationDateTime { get; set; }
+        public decimal Amount { get; set; }
 
-        private decimal Amount { get; set; }
+        [StringLength(50)]
+        public string Status { get; set; }
 
-        private string Status { get; set; }
+        [StringLength(50)]
+        public string OperationType { get; set; }
 
-        private string Type { get; set; }
+        [StringLength(50)]
+        public string Description { get; set; }
 
-        private string Description { get; set; }
+        // Foreign Keys
+        public int IdWalletCryptoSource { get; set; }
+        public int IdWalletCryptoLink_1 { get; set; }
+        public int IdAccount { get; set; }
+        public int IdAccount_1 { get; set; }
 
-        private string Reference { get; set; }
+        // Navigations
+        [ForeignKey("IdWalletCryptoLink")]
+        public virtual WalletCryptoLinkClass WalletSource { get; set; }
 
-        private WalletClass Wallet { get; set; }
+        [ForeignKey("IdWalletCryptoLink_1")]
+        public virtual WalletCryptoLinkClass WalletDestination { get; set; }
 
-        private WalletClass CounterpartyWallet { get; set; }
+        [ForeignKey("IdAccount")]
+        public virtual AccountClass AccountSource { get; set; }
 
-        private AccountClass BankAccount { get; set; }
-
-        private AccountClass CounterpartyBankAccount { get; set; }
-
-        public OperationClass(int id, DateOnly date, decimal amount, string status, string type, string description, string reference, WalletClass wallet, WalletClass counterpartyWallet, AccountClass bankAccount, AccountClass counterpartyBankAccount)
-        {
-            Id = id;
-            Date = date;
-            Amount = amount;
-            Status = status;
-            Type = type;
-            Description = description;
-            Reference = reference;
-            Wallet = wallet;
-            CounterpartyWallet = counterpartyWallet;
-            BankAccount = bankAccount;
-            CounterpartyBankAccount = counterpartyBankAccount;
-        }
+        [ForeignKey("IdAccount_1")]
+        public virtual AccountClass AccountDestination { get; set; }
     }
 }

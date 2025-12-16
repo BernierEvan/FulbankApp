@@ -11,7 +11,7 @@ namespace FulbankApp.Repositories
 {
     public class UserRepository : RepositoryBase, IuserRepository
     {
-        public void Add(UserModel userModel)
+        public void Add(UserClass userModel)
         {
             throw new NotImplementedException();
         }
@@ -63,14 +63,14 @@ namespace FulbankApp.Repositories
             }
         }
 
-        public void Edit(UserModel userModel)
+        public void Edit(UserClass userModel)
         {
             throw new NotImplementedException();
         }
 
-        public UserModel GetByUsername(string username)
+        public UserClass GetByUsername(string username)
         {
-            UserModel user = null;
+            UserClass user = null;
 
             using (var connection = GetConnection())
             using (var command = new SqlCommand())
@@ -84,14 +84,14 @@ namespace FulbankApp.Repositories
                 {
                     if (reader.Read())
                     {
-                        user = new UserModel()
+                        user = new UserClass()
                         {
-                            Id = reader[0].ToString(),
+                            IdUser = reader.GetInt32(0),
                             Username = reader[1].ToString(),
                             Password = string.Empty,  // ✅ Ne jamais retourner le mot de passe
-                            Name = reader[3].ToString(),
-                            LastName = reader[4].ToString(),
-                            Email = reader[5].ToString(),
+                            LastName = reader[3].ToString(),
+                            FirstName = reader[4].ToString(),
+                            Mail = reader[5].ToString(),
                         };
                     }
                 }
@@ -100,12 +100,12 @@ namespace FulbankApp.Repositories
             return user;
         }
 
-        public IEnumerable<UserModel> GetByAll()
+        public IEnumerable<UserClass> GetByAll()
         {
             throw new NotImplementedException();
         }
 
-        public UserModel GetById(int id)
+        public UserClass GetById(int id)
         {
             throw new NotImplementedException();
         }

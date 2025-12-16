@@ -13,8 +13,10 @@
         <!-- HEADER -->
         <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">
             <Grid>
+                <Button Content="Home" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Home" Style="{StaticResource NavButtonStyle}"  Tag="Home" FontSize="20" Margin="173,18,553,18" Height="NaN" RenderTransformOrigin="-0.532,0.556"/>
+
                 <TextBlock Text="Convertir" Foreground="White" FontSize="24" FontWeight="Bold"
-                           VerticalAlignment="Center" Margin="20,0,0,0"/>
+                           VerticalAlignment="Center" Margin="20,0,553,0"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                     <TextBlock Text="Evan" Foreground="White" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Ellipse Width="36" Height="36" Fill="White" Opacity="0.9"/>

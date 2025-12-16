@@ -9,19 +9,25 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    
-    
+
+
     <DockPanel>
-        
+
 
         <!-- HEADER -->
         <Border DockPanel.Dock="Top" Background="#1A4A8F" Height="70">
             <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="401*"/>
+                    <ColumnDefinition Width="399*"/>
+                </Grid.ColumnDefinitions>
+                <Button Content="Home" Click="NavigateButton_Click" Command="{Binding NavigateCommand}" CommandParameter="Home" Style="{StaticResource NavButtonStyle}"  Tag="Home" FontSize="20" Margin="287,20,40,17" Height="NaN" RenderTransformOrigin="0.071,0.551"/>
+
                 <TextBlock Text="Mon compte bancaire"
                            Foreground="White" FontSize="24" FontWeight="Bold"
-                           VerticalAlignment="Center" Margin="20,0,0,0"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                            VerticalAlignment="Center" Margin="0,0,20,0">
+                           VerticalAlignment="Center" Margin="20,0,114,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                            VerticalAlignment="Center" Margin="300,0,0,0" Grid.Column="1">
                     <TextBlock Text="Evan" Foreground="White" FontSize="16"
                                VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Ellipse Width="36" Height="36" Fill="White" Opacity="0.9"/>
@@ -49,7 +55,7 @@
                                        FontSize="22" FontWeight="Bold"/>
                             <TextBlock Text="Evan Dupont" Margin="0,10,0,0"
                                        FontSize="18" FontWeight="SemiBold"/>
-                            <TextBlock Text="IBAN : FR76 1234 5678 9012 3456 7890 123"
+                            <TextBlock Text="{Binding SelectedAccount.IdAccount, StringFormat='IBAN : {0}'}"
                                        Margin="0,6,0,0" TextWrapping="Wrap"/>
                             <TextBlock Text="Type : Compte individuel" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -58,15 +64,27 @@
                         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock Text="Solde disponible" FontSize="16"
                                        Foreground="#1A4A8F"/>
-                            <TextBlock Text="2 350,00 €" FontSize="34"
-                                       FontWeight="Bold" Foreground="#1A4A8F"/>
+
+                            <TextBlock>
+                                <Run Text="{Binding SelectedAccount.Balance, TargetNullValue='Non renseigné', FallbackValue='Chargement...', StringFormat=N2}" 
+                                     FontWeight="Bold" 
+                                     Foreground="Black" 
+                                     FontSize="34" />
+
+                                <Run Text=" " FontSize="34"/>
+
+                                <Run Text="{Binding SelectedAccount.IdFiat}" 
+                                     FontSize="34" 
+                                     FontWeight="Bold" 
+                                     Foreground="#1A4A8F"/>
+                            </TextBlock>
                         </StackPanel>
 
                     </StackPanel>
                 </Border>
 
                 <!-- Section Transactions -->
-                <TextBlock Text="Historique des transactions"
+                <TextBlock Text="Historique des opérations"
                            FontSize="20" FontWeight="Bold"
                            Foreground="#1A4A8F" Margin="0,0,0,12"/>
 
@@ -81,42 +99,17 @@
 
                 <!-- Liste des transactions -->
                 <StackPanel>
+                    
                     <!-- Transaction exemple -->
                     <Border Background="White" CornerRadius="10"
                             Padding="12" Margin="0,0,0,8"
                             BorderBrush="#D9DFE7" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel Width="180">
-                                <TextBlock Text="Virement reçu" FontWeight="SemiBold"/>
-                                <TextBlock Text="DE: Marie Dupont" Foreground="Gray" FontSize="12"/>
-                            </StackPanel>
-                            <StackPanel Width="150">
-                                <TextBlock Text="+ 500,00 €" FontWeight="Bold"/>
-                                <TextBlock Text="24/11/2025" Foreground="Gray" FontSize="12"/>
-                            </StackPanel>
-                            <TextBlock Text="Terminé" HorizontalAlignment="Right"
-                                       VerticalAlignment="Center" Foreground="#1A4A8F"
-                                       FontWeight="SemiBold" />
-                        </StackPanel>
-                    </Border>
 
-                    <!-- Transaction 2 -->
-                    <Border Background="White" CornerRadius="10"
-                            Padding="12" Margin="0,0,0,8"
-                            BorderBrush="#D9DFE7" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel Width="180">
-                                <TextBlock Text="Paiement carte" FontWeight="SemiBold"/>
-                                <TextBlock Text="Amazon FR" Foreground="Gray" FontSize="12"/>
-                            </StackPanel>
-                            <StackPanel Width="150">
-                                <TextBlock Text="- 120,00 €" FontWeight="Bold"/>
-                                <TextBlock Text="22/11/2025" Foreground="Gray" FontSize="12"/>
-                            </StackPanel>
-                            <TextBlock Text="Terminé" HorizontalAlignment="Right"
-                                       VerticalAlignment="Center" Foreground="#1A4A8F"
-                                       FontWeight="SemiBold" />
-                        </StackPanel>
+                        <DataGrid x:Name="BeneficiariesGrid" 
+                                ItemsSource="{Binding Operations}" 
+                                AutoGenerateColumns="True" 
+                                Margin="10" />
+
                     </Border>
 
                 </StackPanel>

@@ -53,6 +53,12 @@ namespace FulbankApp.ViewModels
                 case "Transfer":
                     CurrentViewModel = new TransferViewModel();
                     break;
+                case "Login":
+                    CurrentViewModel = new LoginViewModel();
+                    break;
+                case "Home":
+                    CurrentViewModel = new HomeViewModel();
+                    break;
                 case "Convert":
                     CurrentViewModel = new ConvertViewModel();
                     break;

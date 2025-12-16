@@ -1,22 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using FulbankApp.Models.AccountModels;
 
 namespace FulbankApp.Models.SavingModels
 {
-    public class SavingClass
+    [Table("SavingAccount")]
+    public class SavingAccountClass : AccountClass
     {
-        private int Id { get; set; }
-
-        private decimal InterestRate { get; set; }
-
-        private decimal MinimumBalance { get; set; }
-
-        public SavingClass(int id, decimal interestRate, decimal minimumBalance)
-        {
-            Id = id;
-            InterestRate = interestRate;
-            MinimumBalance = minimumBalance;
-        }
+        // Pas besoin de redéfinir IdAccount, il est hérité
+        public decimal Rate { get; set; } // DECIMAL(3,2)
     }
 }
