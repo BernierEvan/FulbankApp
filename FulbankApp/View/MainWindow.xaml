@@ -39,16 +39,19 @@
                             </Setter.Value>
                         </Setter>
                         <Style.Triggers>
-                            <Trigger Property="Visibility" Value="Visible">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
+                            <DataTrigger Binding="{Binding Visibility, RelativeSource={RelativeSource AncestorType=Grid}}" Value="Visible">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="ScrollAnimation">
                                         <Storyboard RepeatBehavior="Forever">
                                             <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                     From="0" To="-1920" Duration="0:0:10" />
+                                             From="0" To="-1920" Duration="0:0:10" />
                                         </Storyboard>
                                     </BeginStoryboard>
-                                </Trigger.EnterActions>
-                            </Trigger>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <StopStoryboard BeginStoryboardName="ScrollAnimation"/>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Canvas.Resources>

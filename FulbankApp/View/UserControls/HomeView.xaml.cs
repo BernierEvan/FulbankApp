@@ -32,31 +32,19 @@ namespace FulbankApp.View
     {
         #region Private Properties
 
-        // === GESTION DU MOUVEMENT ===
+        #region Private Properties
         private readonly DispatcherTimer _movementTimer;
-        private bool _isMovingUp;
-        private bool _isMovingDown;
-        private bool _isMovingLeft;
-        private bool _isMovingRight;
+        private bool _isMovingUp, _isMovingDown, _isMovingLeft, _isMovingRight;
         private readonly HashSet<Key> _pressedKeys = new();
-
-        // === PERSONNAGE ANIMÉ ===
         private AnimatedCharacter _playerCharacter;
         private DateTime _lastUpdateTime;
-
-        // === DÉTECTION DE COLLISIONS ===
         private readonly List<Rectangle> _obstacles = new();
         private readonly CollisionService _collisionService = new();
-
-        // === RENDU ET MASQUE ===
         private DateTime _lastMaskUpdate = DateTime.MinValue;
         private double _previousMaskLeft = double.NaN;
         private double _previousMaskTop = double.NaN;
         private double _previousMaskAngle = double.NaN;
-
-        // === VIEWMODEL FOR CHANGES ===
-
-        public ICommand NavigateCommand { get; private set; }
+        #endregion
 
         #endregion
 
@@ -66,26 +54,16 @@ namespace FulbankApp.View
         public HomeView()
         {
             InitializeComponent();
-
-            // Configuration initiale
             InitializeObstacles();
             InitializeCharacter();
             SetupAnimations();
 
-            // FIX: Initialiser le timer après tous les autres composants
-            _movementTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(Constants.MOVEMENT_TIMER_INTERVAL_MS)
-            };
+            _movementTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Constants.MOVEMENT_TIMER_INTERVAL_MS) };
             _movementTimer.Tick += OnMovementTick;
             _movementTimer.Start();
 
-            // Événements : laisser l'attachement clavier au MainCanvas dans OnWindowLoaded
             this.Loaded += OnWindowLoaded;
             this.Focusable = true;
-
-            // ViewModel
-            NavigateCommand = new RelayCommand(ExecuteNavigation);
         }
 
         #endregion
@@ -703,70 +681,60 @@ namespace FulbankApp.View
         {
             var button = sender as Button;
             if (button == null) return;
+            string destination = button.Tag?.ToString();
 
-            // 1. Figer le jeu : désactiver les mouvements et interactions
+            // 1. Figer le jeu
             _movementTimer?.Stop();
             MainCanvas.IsEnabled = false;
 
-            // 2. Créer l'animation de fondu de sortie (Fade Out simple)
-            var fadeOut = new DoubleAnimation
+            // 2. Animation de sortie
+            var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(300))
             {
-                From = 1.0,
-                To = 0.0,
-                Duration = TimeSpan.FromMilliseconds(300), // 300ms est fluide et rapide
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
                 FillBehavior = FillBehavior.Stop
             };
 
-            // 3. Au moment où le fondu est terminé, on lance la navigation
             fadeOut.Completed += (s, args) =>
             {
-                // On force l'opacité à 0 pour éviter le "flash" avant que la nouvelle page ne charge
-                MainCanvas.Opacity = 0;
-
-                // Appel de votre fonction de navigation existante (qui gère le Skeleton)
-                NavigateToPage(button);
+                // 3. APPEL AU MAINVIEWMODEL (Navigation propre)
+                var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
+                if (mainVM != null && !string.IsNullOrEmpty(destination))
+                {
+                    // C'est cette ligne qui fait le travail sans bug
+                    if (mainVM.NavigateCommand.CanExecute(destination))
+                        mainVM.NavigateCommand.Execute(destination);
+                }
             };
 
-            // 4. Lancer l'animation sur le Canvas
             MainCanvas.BeginAnimation(UIElement.OpacityProperty, fadeOut);
         }
 
-
+        // --- CORRECTION : BOUTON AVEC ZOOM ---
         private void GameButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button == null) return;
+            string destination = button.Tag?.ToString();
 
-            // --- NOUVEAU CODE : CENTRAGE DU ZOOM ---
+            // Centrage du zoom
+            Point center = button.TransformToAncestor(MainCanvas)
+                                 .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
+            MainCanvas.RenderTransformOrigin = new Point(center.X / MainCanvas.ActualWidth, center.Y / MainCanvas.ActualHeight);
 
-            // 1. Calculer le centre du bouton (Point(Width/2, Height/2))
-            // 2. Transformer ce point pour obtenir ses coordonnées relatives au MainCanvas
-            Point centerOfButton = button.TransformToAncestor(MainCanvas)
-                                         .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
-
-            // 3. Convertir en coordonnées relatives (0.0 à 1.0) pour RenderTransformOrigin
-            // Ex: Si le canvas fait 1000px et le bouton est à 500px, on veut 0.5
-            double originX = centerOfButton.X / MainCanvas.ActualWidth;
-            double originY = centerOfButton.Y / MainCanvas.ActualHeight;
-
-            // 4. Appliquer l'origine au Canvas
-            MainCanvas.RenderTransformOrigin = new Point(originX, originY);
-
-            // ---------------------------------------
-
-            // 1. Désactiver les interactions
             _movementTimer?.Stop();
             MainCanvas.IsEnabled = false;
 
-            // 2. Créer et lancer l'animation (le zoom partira maintenant du bouton)
             var storyboard = CreateButtonClickZoomAnimation();
 
-            // 3. Définir la fin de l'animation
             storyboard.Completed += (s, args) =>
             {
-                MainCanvas.Opacity = 0;
-                NavigateToPage(button);
+                // APPEL AU MAINVIEWMODEL
+                var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
+                if (mainVM != null && !string.IsNullOrEmpty(destination))
+                {
+                    if (mainVM.NavigateCommand.CanExecute(destination))
+                        mainVM.NavigateCommand.Execute(destination);
+                }
             };
 
             storyboard.Begin();
@@ -774,114 +742,20 @@ namespace FulbankApp.View
 
         private Storyboard CreateButtonClickZoomAnimation()
         {
-            var storyboard = new Storyboard();
+            var sb = new Storyboard();
+            AddZoomAnimation(sb, 1.0, 1.3, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            AddZoomAnimation(sb, 1.3, 1.0, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            AddZoomAnimation(sb, 1.0, 15, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
 
-            // 1. Zoom In (0s to 1s)
-            AddZoomAnimation(storyboard, 1.0, 1.3, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-
-            // 2. Zoom Out (1s to 2s)
-            AddZoomAnimation(storyboard, 1.3, 1.0, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-
-            // 3. Huge Zoom (2s to 3s)
-            AddZoomAnimation(storyboard, 1.0, 15, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
-
-            // 4. Fade Out
-            // We use FillBehavior.Stop so the animation system releases the 'lock' 
-            // on the Opacity property immediately after finishing.
-            var fadeOutAnimation = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1.0))
-            {
-                BeginTime = TimeSpan.FromSeconds(2.0),
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn },
-                FillBehavior = FillBehavior.Stop // <--- CRITICAL CHANGE
-            };
-
-            Storyboard.SetTarget(fadeOutAnimation, MainCanvas);
-            Storyboard.SetTargetProperty(fadeOutAnimation, new PropertyPath("Opacity"));
-
-            storyboard.Children.Add(fadeOutAnimation);
-
-            return storyboard;
-        }
-
-        private async void NavigateToPage(Button button)
-        {
-            // 1. Récupération du ViewModel
-            var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
-            if (mainVM == null) return;
-
-            string key = button.Tag?.ToString();
-            if (string.IsNullOrEmpty(key)) return;
-
-            // 2. Activer l'écran de chargement
-            mainVM.IsLoading = true;
-
-            // Laisser le temps à l'UI d'afficher le chargement (100ms)
-            await Task.Delay(100);
-
-            try
-            {
-                // 3. Charger le prochain ViewModel dans une tâche de fond
-                // CORRECTION ICI : On utilise Task.Run<object> et pas de async/await inutile dedans
-                object nextViewModel = await Task.Run<object>(() =>
-                {
-                    // Simulation du temps de chargement (1.5 secondes)
-                    // Utiliser Thread.Sleep ici est correct car on est dans un Task.Run (thread séparé)
-                    System.Threading.Thread.Sleep(1500);
-
-                    // Création du ViewModel selon la clé
-                    switch (key)
-                    {
-                        case "BankAccounts": return new BankAccountViewModel();
-                        case "Wallet": return new WalletViewModel();
-                        case "Transfer": return new TransferViewModel();
-                        case "Convert": return new ConvertViewModel();
-                        case "Beneficiaries": return new BeneficiariesViewModel();
-                        case "Settings": return new SettingsViewModel();
-                        default: return null;
-                    }
-                });
-
-                // 4. Mise à jour de l'interface (sur le Thread UI)
-                if (nextViewModel != null)
-                {
-                    mainVM.CurrentViewModel = nextViewModel;
-                }
-                else
-                {
-                    MessageBox.Show($"Page non trouvée : {key}");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Erreur : {ex.Message}");
-            }
-            finally
-            {
-                // 5. Désactiver le chargement
-                mainVM.IsLoading = false;
-            }
+            var fade = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1.0)) { BeginTime = TimeSpan.FromSeconds(2.0) };
+            Storyboard.SetTarget(fade, MainCanvas);
+            Storyboard.SetTargetProperty(fade, new PropertyPath("Opacity"));
+            sb.Children.Add(fade);
+            return sb;
         }
 
         // Méthode helper pour choisir le bon squelette
-        private UserControl GetSkeletonView(string key)
-        {
-            // Idéalement, retournez un squelette spécifique par page.
-            // Pour l'instant, on peut retourner un squelette générique ou spécifique.
-
-            switch (key)
-            {
-                case "Wallet":
-                    return new WalletSkeletonView(); // Celui qu'on a créé
-
-                case "BankAccounts":
-                    // return new BankAccountsSkeletonView();
-                    return new WalletSkeletonView(); // Recyclage temporaire
-
-                default:
-                    // Un squelette générique par défaut
-                    return new WalletSkeletonView();
-            }
-        }
+        
 
 
         private void RestoreCanvasState()
@@ -903,21 +777,14 @@ namespace FulbankApp.View
             MainCanvas.Focus();
         }
 
-        private void AddZoomAnimation(Storyboard storyboard, double from, double to, TimeSpan beginTime, TimeSpan duration)
+        private void AddZoomAnimation(Storyboard sb, double from, double to, TimeSpan begin, TimeSpan dur)
         {
-            var scaleXAnimation = new DoubleAnimation(from, to, duration) { BeginTime = beginTime };
-            var scaleYAnimation = new DoubleAnimation(from, to, duration) { BeginTime = beginTime };
-
-            Storyboard.SetTarget(scaleXAnimation, MainCanvas);
-            Storyboard.SetTarget(scaleYAnimation, MainCanvas);
-
-            Storyboard.SetTargetProperty(scaleXAnimation,
-                new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
-            Storyboard.SetTargetProperty(scaleYAnimation,
-                new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
-
-            storyboard.Children.Add(scaleXAnimation);
-            storyboard.Children.Add(scaleYAnimation);
+            var sx = new DoubleAnimation(from, to, dur) { BeginTime = begin };
+            var sy = new DoubleAnimation(from, to, dur) { BeginTime = begin };
+            Storyboard.SetTarget(sx, MainCanvas); Storyboard.SetTarget(sy, MainCanvas);
+            Storyboard.SetTargetProperty(sx, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
+            Storyboard.SetTargetProperty(sy, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
+            sb.Children.Add(sx); sb.Children.Add(sy);
         }
 
         // --- EMPTY EVENT HANDLERS (Clean these up!) ---
@@ -936,15 +803,7 @@ namespace FulbankApp.View
             MessageBox.Show("Navigation exécutée (Code-Behind)");
         }
 
-        private void NavigateButton_Click(object sender, RoutedEventArgs e)
-        {
-            var storyboard = CreateButtonClickZoomAnimation();
-            storyboard.Completed += async (s, args) =>
-            {
-                
-            };
-            storyboard.Begin();
-        }
+        
 
         
 
