@@ -91,7 +91,7 @@
                 <TextBlock Text="Chargement..." Foreground="White" FontSize="60" FontWeight="Bold"
                    Canvas.Left="750" Canvas.Top="450">
                     <TextBlock.Effect>
-                        <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="5" Opacity="0.8"/>
+                        <DropShadowEffect Color="Black" BlurRadius="20"/>
                     </TextBlock.Effect>
                 </TextBlock>
 

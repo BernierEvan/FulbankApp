@@ -31,21 +31,21 @@ namespace FulbankApp.View
     public partial class HomeView : UserControl
     {
         #region Private Properties
-
-        #region Private Properties
-        private readonly DispatcherTimer _movementTimer;
-        private bool _isMovingUp, _isMovingDown, _isMovingLeft, _isMovingRight;
+        private DispatcherTimer _movementTimer; // Plus de readonly pour pouvoir le nullifier
         private readonly HashSet<Key> _pressedKeys = new();
         private AnimatedCharacter _playerCharacter;
         private DateTime _lastUpdateTime;
         private readonly List<Rectangle> _obstacles = new();
         private readonly CollisionService _collisionService = new();
+
+        // Variables pour le masque
         private DateTime _lastMaskUpdate = DateTime.MinValue;
         private double _previousMaskLeft = double.NaN;
         private double _previousMaskTop = double.NaN;
         private double _previousMaskAngle = double.NaN;
-        #endregion
 
+        // Mouvement
+        private bool _isMovingUp, _isMovingDown, _isMovingLeft, _isMovingRight;
         #endregion
 
         #region Constructeur
@@ -54,13 +54,19 @@ namespace FulbankApp.View
         public HomeView()
         {
             InitializeComponent();
+
+            // Initialisation du jeu
             InitializeObstacles();
             InitializeCharacter();
             SetupAnimations();
 
+            // Timer de mouvement
             _movementTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Constants.MOVEMENT_TIMER_INTERVAL_MS) };
             _movementTimer.Tick += OnMovementTick;
             _movementTimer.Start();
+
+            // Gestionnaire pour nettoyer la mémoire quand on quitte la vue
+            this.Unloaded += OnViewUnloaded;
 
             this.Loaded += OnWindowLoaded;
             this.Focusable = true;
@@ -677,17 +683,27 @@ namespace FulbankApp.View
         #region Boutons / Navigation
 
 
+        private void OnViewUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (_movementTimer != null)
+            {
+                _movementTimer.Stop();
+                _movementTimer.Tick -= OnMovementTick;
+                _movementTimer = null;
+            }
+        }
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button == null) return;
             string destination = button.Tag?.ToString();
 
-            // 1. FREEZE INPUT IMMEDIATELY
-            _movementTimer?.Stop();
+            // 1. Figer le jeu
+            if (_movementTimer != null) _movementTimer.Stop();
             MainCanvas.IsEnabled = false;
 
-            // 2. FADE OUT
+            // 2. Animation de sortie (Fade Out)
             var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(300))
             {
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
@@ -696,7 +712,7 @@ namespace FulbankApp.View
 
             fadeOut.Completed += (s, args) =>
             {
-                // 3. EXECUTE NAVIGATION COMMAND
+                // 3. Appel au ViewModel pour changer de page
                 var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
                 if (mainVM != null && !string.IsNullOrEmpty(destination))
                 {
@@ -708,31 +724,34 @@ namespace FulbankApp.View
             MainCanvas.BeginAnimation(UIElement.OpacityProperty, fadeOut);
         }
 
-        // --- CORRECTION : BOUTON AVEC ZOOM ---
         private void GameButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             if (button == null) return;
             string destination = button.Tag?.ToString();
 
-            // Centrage du zoom
-            Point center = button.TransformToAncestor(MainCanvas)
-                                 .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
-            MainCanvas.RenderTransformOrigin = new Point(center.X / MainCanvas.ActualWidth, center.Y / MainCanvas.ActualHeight);
+            // 1. Zoom (Centrage)
+            try
+            {
+                Point center = button.TransformToAncestor(MainCanvas)
+                                     .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
+                MainCanvas.RenderTransformOrigin = new Point(center.X / MainCanvas.ActualWidth, center.Y / MainCanvas.ActualHeight);
+            }
+            catch { /* Ignorer si erreur de calcul */ }
 
-            _movementTimer?.Stop();
+            if (_movementTimer != null) _movementTimer.Stop();
             MainCanvas.IsEnabled = false;
 
+            // 2. Animation Zoom
             var storyboard = CreateButtonClickZoomAnimation();
 
             storyboard.Completed += (s, args) =>
             {
-                // APPEL AU MAINVIEWMODEL
+                // 3. Appel au ViewModel
                 var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
                 if (mainVM != null && !string.IsNullOrEmpty(destination))
                 {
-                    if (mainVM.NavigateCommand.CanExecute(destination))
-                        mainVM.NavigateCommand.Execute(destination);
+                    mainVM.NavigateCommand.Execute(destination);
                 }
             };
 
@@ -754,7 +773,7 @@ namespace FulbankApp.View
         }
 
         // Méthode helper pour choisir le bon squelette
-        
+
 
 
         private void RestoreCanvasState()

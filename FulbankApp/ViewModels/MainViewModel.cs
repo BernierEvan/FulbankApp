@@ -1,4 +1,4 @@
-﻿using FulbankApp.Helpers; // Pour RelayCommand
+﻿using FulbankApp.Helpers;
 using System;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,8 +8,6 @@ namespace FulbankApp.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-        // === PROPRIÉTÉS ===
-
         private object _currentViewModel;
         public object CurrentViewModel
         {
@@ -24,39 +22,30 @@ namespace FulbankApp.ViewModels
             set { _isLoading = value; OnPropertyChanged(); }
         }
 
-        // === COMMANDE ===
         public ICommand NavigateCommand { get; }
 
-        // === CONSTRUCTEUR ===
         public MainViewModel()
         {
-            // Vue par défaut
+            // Initialisation
             CurrentViewModel = new HomeViewModel();
-            NavigateCommand = new RelayCommand<string>(async (page) => await Navigate(page));
+            NavigateCommand = new RelayCommand<string>(async (p) => await Navigate(p));
         }
 
-        // === LOGIQUE DE NAVIGATION CENTRALISÉE ===
         public async Task Navigate(string pageKey)
         {
             if (string.IsNullOrEmpty(pageKey)) return;
 
-            // 1. Activer l'écran de chargement
             IsLoading = true;
-
-            // Petit délai pour que l'UI ait le temps d'afficher le loader
-            await Task.Delay(100);
+            await Task.Delay(100); // Laisser l'UI afficher le loader
 
             try
             {
-                // === CORRECTION ICI ===
-                // On ajoute <object> juste après Task.Run pour fixer le type de retour.
+                // Task.Run<object> pour éviter les erreurs de type du compilateur
                 object nextView = await Task.Run<object>(() =>
                 {
-                    // Simulation de travail (synchrones ici car on est dans un thread séparé)
+                    // Simulation de chargement
                     System.Threading.Thread.Sleep(1000);
 
-                    // On retourne les ViewModels. Comme ils héritent tous de BaseViewModel,
-                    // ils sont compatibles avec "object".
                     switch (pageKey)
                     {
                         case "Home": return new HomeViewModel();
@@ -71,22 +60,18 @@ namespace FulbankApp.ViewModels
                     }
                 });
 
-                // 2. Mise à jour de l'UI (Retour sur le thread principal)
+                // Retour sur le thread UI
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (nextView != null)
-                    {
-                        CurrentViewModel = nextView;
-                    }
+                    if (nextView != null) CurrentViewModel = nextView;
                 });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur de navigation : {ex.Message}");
+                MessageBox.Show($"Erreur: {ex.Message}");
             }
             finally
             {
-                // 3. Désactiver le chargement
                 await Task.Delay(200);
                 IsLoading = false;
             }
