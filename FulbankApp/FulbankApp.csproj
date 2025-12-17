@@ -25,6 +25,7 @@
     <None Remove="assets\characters\default_female\idle\idle_up.png" />
     <None Remove="assets\characters\default_female\idle\idle_up_left.png" />
     <None Remove="assets\characters\default_female\idle\idle_up_right.png" />
+    <None Remove="assets\characters\default_male\animations\run\run_east.gif" />
     <None Remove="assets\characters\default_male\animations\walk\gifs\walk_down.gif" />
     <None Remove="assets\characters\default_male\animations\walk\gifs\walk_down_left.gif" />
     <None Remove="assets\characters\default_male\animations\walk\gifs\walk_down_right.gif" />
@@ -75,6 +76,7 @@
     <Resource Include="assets\characters\default_female\idle\idle_up.png" />
     <Resource Include="assets\characters\default_female\idle\idle_up_left.png" />
     <Resource Include="assets\characters\default_female\idle\idle_up_right.png" />
+    <Resource Include="assets\characters\default_male\animations\run\run_east.gif" />
     <Resource Include="assets\characters\default_male\animations\walk\gifs\walk_down.gif" />
     <Resource Include="assets\characters\default_male\animations\walk\gifs\walk_down_left.gif" />
     <Resource Include="assets\characters\default_male\animations\walk\gifs\walk_down_right.gif" />

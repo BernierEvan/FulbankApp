@@ -228,8 +228,42 @@ namespace FulbankApp.View
 
         #region Cycle de Vie de la Fenêtre
 
+        private void ResetState()
+        {
+            // Reset Canvas Interaction and Visibility
+            if (MainCanvas != null)
+            {
+                MainCanvas.IsEnabled = true;
+                MainCanvas.Opacity = 1.0;
+
+                // Reset Zoom/Transform if it was changed
+                MainCanvas.RenderTransformOrigin = new Point(0.5, 0.5);
+                ResetCanvasZoom(); // Ensure this helper method is available or manually reset transform
+            }
+
+            // Restart Timer if it was stopped/nullified
+            if (_movementTimer == null)
+            {
+                _movementTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Constants.MOVEMENT_TIMER_INTERVAL_MS) };
+                _movementTimer.Tick += OnMovementTick;
+                _movementTimer.Start();
+            }
+            else if (!_movementTimer.IsEnabled)
+            {
+                _movementTimer.Start();
+            }
+
+            // Clear pressed keys to prevent "stuck" movement
+            _pressedKeys.Clear();
+            _isMovingUp = _isMovingDown = _isMovingLeft = _isMovingRight = false;
+        }
+
+        // 2. Update OnWindowLoaded to call ResetState
         private void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
+            // RESET STATE HERE to handle view reuse
+            ResetState();
+
             // S'assurer que le Canvas a le focus pour recevoir les événements clavier
             if (MainCanvas != null)
             {
@@ -237,12 +271,16 @@ namespace FulbankApp.View
                 MainCanvas.Focus();
                 Keyboard.Focus(MainCanvas);
 
-                // Attacher les événements clavier sur le Canvas (recevra les touches si canvas a le focus)
+                // Prevent duplicate event subscriptions if Loaded fires multiple times
+                MainCanvas.KeyDown -= OnWindowKeyDown;
                 MainCanvas.KeyDown += OnWindowKeyDown;
+
+                MainCanvas.KeyUp -= OnWindowKeyUp;
                 MainCanvas.KeyUp += OnWindowKeyUp;
             }
 
             // Configurer le rendu du masque
+            MaskRect.LayoutUpdated -= OnMaskRectLayoutUpdated; // Prevent duplicates
             MaskRect.LayoutUpdated += OnMaskRectLayoutUpdated;
             UpdateMaskRectBrush();
         }

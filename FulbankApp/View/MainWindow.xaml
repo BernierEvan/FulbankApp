@@ -45,7 +45,7 @@
                                         <BeginStoryboard x:Name="Anim1">
                                             <Storyboard RepeatBehavior="Forever">
                                                 <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                         From="0" To="-1920" Duration="0:0:10" />
+                                                         From="0" To="-1920" Duration="0:0:5" />
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </DataTrigger.EnterActions>
@@ -72,7 +72,7 @@
                                         <BeginStoryboard x:Name="Anim2">
                                             <Storyboard RepeatBehavior="Forever">
                                                 <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
-                                                         From="0" To="-1920" Duration="0:0:10" />
+                                                         From="0" To="-1920" Duration="0:0:5" />
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </DataTrigger.EnterActions>
@@ -85,7 +85,7 @@
                     </Image.Style>
                 </Image>
 
-                <Image gif:ImageBehavior.AnimatedSource="/assets/characters/default_male/animations/walk/gifs/walk_right.gif"
+                <Image gif:ImageBehavior.AnimatedSource="/assets/characters/default_male/animations/run/run_east.gif"
                Height="500" Canvas.Left="300" Canvas.Top="500"/>
 
                 <TextBlock Text="Chargement..." Foreground="White" FontSize="60" FontWeight="Bold"
