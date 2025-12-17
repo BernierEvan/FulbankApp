@@ -230,18 +230,20 @@ namespace FulbankApp.View
 
         private void ResetState()
         {
-            // Reset Canvas Interaction and Visibility
+            // Reset Canvas Interaction
             if (MainCanvas != null)
             {
+                // IMPORTANT: Clear any running animations that might hold the Opacity at 0
+                MainCanvas.BeginAnimation(UIElement.OpacityProperty, null);
+
                 MainCanvas.IsEnabled = true;
                 MainCanvas.Opacity = 1.0;
 
-                // Reset Zoom/Transform if it was changed
                 MainCanvas.RenderTransformOrigin = new Point(0.5, 0.5);
-                ResetCanvasZoom(); // Ensure this helper method is available or manually reset transform
+                ResetCanvasZoom();
             }
 
-            // Restart Timer if it was stopped/nullified
+            // Restart Timer logic...
             if (_movementTimer == null)
             {
                 _movementTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(Constants.MOVEMENT_TIMER_INTERVAL_MS) };
@@ -253,7 +255,7 @@ namespace FulbankApp.View
                 _movementTimer.Start();
             }
 
-            // Clear pressed keys to prevent "stuck" movement
+            // Clear inputs
             _pressedKeys.Clear();
             _isMovingUp = _isMovingDown = _isMovingLeft = _isMovingRight = false;
         }
@@ -293,7 +295,7 @@ namespace FulbankApp.View
             Keyboard.Focus(MainCanvas);
             e.Handled = false;
         }
-                
+
         #endregion
 
         #region Masque & Zoom (implémentations ajoutées)
@@ -366,9 +368,9 @@ namespace FulbankApp.View
             }
         }
 
-        private void ZoomOnButton(Button button)
+        private Storyboard? ZoomOnButton(Button button, bool autoStart = true)
         {
-            if (MainCanvas == null || button == null) return;
+            if (MainCanvas == null || button == null) return null;
 
             try
             {
@@ -393,12 +395,19 @@ namespace FulbankApp.View
                 storyboard.Children.Add(scaleX);
                 storyboard.Children.Add(scaleY);
 
-                storyboard.Begin();
+                if (autoStart)
+                {
+                    storyboard.Begin();
+                }
+
+                return storyboard;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"ZoomOnButton error: {ex.Message}");
             }
+
+            return null;
         }
 
         private void ResetCanvasZoom()
@@ -643,7 +652,7 @@ namespace FulbankApp.View
 
         /// <summary>
         /// Charge les animations GIF et l'image idle du skin donné,
-            /// et met à jour l'image "Player" pour afficher l'idle initial.
+        /// et met à jour l'image "Player" pour afficher l'idle initial.
         /// </summary>
         public void SetPlayerSkin(string skinName)
         {
@@ -720,6 +729,136 @@ namespace FulbankApp.View
 
         #region Boutons / Navigation
 
+        private void PauseCanvasInteraction()
+        {
+            _movementTimer?.Stop();
+
+            if (MainCanvas != null)
+            {
+                MainCanvas.IsEnabled = false;
+            }
+        }
+
+        private void ShowSkeletonLoading(string? contextLabel)
+        {
+            if (SkeletonLoadingOverlay != null)
+            {
+                SkeletonLoadingOverlay.Visibility = Visibility.Visible;
+                SkeletonLoadingOverlay.IsHitTestVisible = true;
+            }
+
+            if (SkeletonLoadingPresenter != null)
+            {
+                SkeletonLoadingPresenter.Message = string.IsNullOrWhiteSpace(contextLabel)
+                    ? "Chargement..."
+                    : $"Chargement de {contextLabel}...";
+            }
+        }
+
+        private void HideSkeletonLoading()
+        {
+            if (SkeletonLoadingOverlay != null)
+            {
+                SkeletonLoadingOverlay.Visibility = Visibility.Collapsed;
+                SkeletonLoadingOverlay.IsHitTestVisible = false;
+            }
+        }
+
+        private async void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button) return;
+
+            string destination = button.Tag?.ToString();
+            if (string.IsNullOrWhiteSpace(destination)) return;
+
+            PauseCanvasInteraction();
+
+            string label = ResolveButtonLabel(button, destination);
+            ShowSkeletonLoading(label);
+
+            try
+            {
+                if (Application.Current.MainWindow?.DataContext is MainViewModel mainVM)
+                {
+                    await mainVM.Navigate(destination, NavigationPresentation.Skeleton);
+                }
+            }
+            finally
+            {
+                HideSkeletonLoading();
+                RestoreCanvasState();
+            }
+        }
+
+        private async void GameButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button) return;
+
+            string destination = button.Tag?.ToString();
+            if (string.IsNullOrWhiteSpace(destination)) return;
+
+            if (MainCanvas != null)
+            {
+                try
+                {
+                    Point center = button.TransformToAncestor(MainCanvas)
+                                         .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
+                    MainCanvas.RenderTransformOrigin = new Point(center.X / MainCanvas.ActualWidth, center.Y / MainCanvas.ActualHeight);
+                }
+                catch
+                {
+                }
+            }
+
+            PauseCanvasInteraction();
+
+            var preZoomStoryboard = ZoomOnButton(button, autoStart: false);
+            await PlayStoryboardAsync(preZoomStoryboard);
+
+            var storyboard = CreateButtonClickZoomAnimation();
+            await PlayStoryboardAsync(storyboard);
+
+            try
+            {
+                if (Application.Current.MainWindow?.DataContext is MainViewModel mainVM)
+                {
+                    await mainVM.Navigate(destination, NavigationPresentation.GlobalLoading);
+                }
+            }
+            finally
+            {
+                RestoreCanvasState();
+            }
+        }
+
+        private static string ResolveButtonLabel(Button button, string fallback) =>
+            button.Content switch
+            {
+                string text => text,
+                TextBlock textBlock => textBlock.Text,
+                _ => fallback
+            };
+
+        private static Task PlayStoryboardAsync(Storyboard storyboard)
+        {
+            if (storyboard == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            var tcs = new TaskCompletionSource<bool>();
+
+            void OnCompleted(object? sender, EventArgs e)
+            {
+                storyboard.Completed -= OnCompleted;
+                tcs.TrySetResult(true);
+            }
+
+            storyboard.Completed += OnCompleted;
+            storyboard.Begin();
+
+            return tcs.Task;
+        }
 
         private void OnViewUnloaded(object sender, RoutedEventArgs e)
         {
@@ -730,140 +869,6 @@ namespace FulbankApp.View
                 _movementTimer = null;
             }
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            if (button == null) return;
-            string destination = button.Tag?.ToString();
-
-            // 1. Figer le jeu
-            if (_movementTimer != null) _movementTimer.Stop();
-            MainCanvas.IsEnabled = false;
-
-            // 2. Animation de sortie (Fade Out)
-            var fadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(300))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
-                FillBehavior = FillBehavior.Stop
-            };
-
-            fadeOut.Completed += (s, args) =>
-            {
-                // 3. Appel au ViewModel pour changer de page
-                var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
-                if (mainVM != null && !string.IsNullOrEmpty(destination))
-                {
-                    if (mainVM.NavigateCommand.CanExecute(destination))
-                        mainVM.NavigateCommand.Execute(destination);
-                }
-            };
-
-            MainCanvas.BeginAnimation(UIElement.OpacityProperty, fadeOut);
-        }
-
-        private void GameButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            if (button == null) return;
-            string destination = button.Tag?.ToString();
-
-            // 1. Zoom (Centrage)
-            try
-            {
-                Point center = button.TransformToAncestor(MainCanvas)
-                                     .Transform(new Point(button.ActualWidth / 2, button.ActualHeight / 2));
-                MainCanvas.RenderTransformOrigin = new Point(center.X / MainCanvas.ActualWidth, center.Y / MainCanvas.ActualHeight);
-            }
-            catch { /* Ignorer si erreur de calcul */ }
-
-            if (_movementTimer != null) _movementTimer.Stop();
-            MainCanvas.IsEnabled = false;
-
-            // 2. Animation Zoom
-            var storyboard = CreateButtonClickZoomAnimation();
-
-            storyboard.Completed += (s, args) =>
-            {
-                // 3. Appel au ViewModel
-                var mainVM = Application.Current.MainWindow.DataContext as MainViewModel;
-                if (mainVM != null && !string.IsNullOrEmpty(destination))
-                {
-                    mainVM.NavigateCommand.Execute(destination);
-                }
-            };
-
-            storyboard.Begin();
-        }
-
-        private Storyboard CreateButtonClickZoomAnimation()
-        {
-            var sb = new Storyboard();
-            AddZoomAnimation(sb, 1.0, 1.3, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-            AddZoomAnimation(sb, 1.3, 1.0, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-            AddZoomAnimation(sb, 1.0, 15, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1));
-
-            var fade = new DoubleAnimation(1, 0, TimeSpan.FromSeconds(1.0)) { BeginTime = TimeSpan.FromSeconds(2.0) };
-            Storyboard.SetTarget(fade, MainCanvas);
-            Storyboard.SetTargetProperty(fade, new PropertyPath("Opacity"));
-            sb.Children.Add(fade);
-            return sb;
-        }
-
-        // Méthode helper pour choisir le bon squelette
-
-
-
-        private void RestoreCanvasState()
-        {
-            // Remettre l'origine du zoom au centre de l'écran par défaut
-            MainCanvas.RenderTransformOrigin = new Point(0.5, 0.5); // <--- AJOUT IMPORTANT
-
-            // Reset Opacity to visible
-            MainCanvas.Opacity = 1.0;
-
-            // Reset Zoom
-            ResetCanvasZoom();
-
-            // Re-enable interaction
-            MainCanvas.IsEnabled = true;
-            _movementTimer?.Start();
-
-            // Redonner le focus au canvas pour que le clavier remarche immédiatement
-            MainCanvas.Focus();
-        }
-
-        private void AddZoomAnimation(Storyboard sb, double from, double to, TimeSpan begin, TimeSpan dur)
-        {
-            var sx = new DoubleAnimation(from, to, dur) { BeginTime = begin };
-            var sy = new DoubleAnimation(from, to, dur) { BeginTime = begin };
-            Storyboard.SetTarget(sx, MainCanvas); Storyboard.SetTarget(sy, MainCanvas);
-            Storyboard.SetTargetProperty(sx, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"));
-            Storyboard.SetTargetProperty(sy, new PropertyPath("(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"));
-            sb.Children.Add(sx); sb.Children.Add(sy);
-        }
-
-        // --- EMPTY EVENT HANDLERS (Clean these up!) ---
-        private void Button_MouseEnter(object sender, MouseEventArgs e) { }
-        private void Button_MouseLeave(object sender, MouseEventArgs e) { }
-        private void Button2_MouseEnter(object sender, MouseEventArgs e) { }
-        private void Button2_MouseLeave(object sender, MouseEventArgs e) { }
-
-        #endregion
-
-
-        #region Navigation (inchangés)
-
-        private void ExecuteNavigation()
-        {
-            MessageBox.Show("Navigation exécutée (Code-Behind)");
-        }
-
-        
-
-        
-
-        
-        #endregion
     }
 }
+        #endregion

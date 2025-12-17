@@ -99,4 +99,8 @@
     <Resource Include="assets\images\seemless_loading_screen.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="assets\characters\three_piece_man\animations\gifs\" />
+  </ItemGroup>
+
 </Project>

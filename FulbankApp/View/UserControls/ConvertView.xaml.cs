@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FulbankApp.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,21 +28,26 @@ namespace FulbankApp.View
 
         private void NavigateButton_Click(object sender, RoutedEventArgs e)
         {
-            var main = Application.Current.MainWindow as MainWindow;
-            if (main == null) return;
-
-            var btn = sender as Button;
-            string key = btn.Tag.ToString();
-
-            switch (key)
+            if (Application.Current.MainWindow?.DataContext is not MainViewModel mainViewModel)
             {
-                case "Home":
-                    main.Content = new HomeView();
-                    break;
-                default:
-                    break;
+                return;
+            }
+
+            if (sender is not Button button)
+            {
+                return;
+            }
+
+            var destination = button.Tag as string;
+            if (string.IsNullOrWhiteSpace(destination))
+            {
+                return;
+            }
+
+            if (mainViewModel.NavigateCommand.CanExecute(destination))
+            {
+                mainViewModel.NavigateCommand.Execute(destination);
             }
         }
-
     }
 }

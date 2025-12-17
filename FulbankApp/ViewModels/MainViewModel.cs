@@ -6,6 +6,12 @@ using System.Windows.Input;
 
 namespace FulbankApp.ViewModels
 {
+    public enum NavigationPresentation
+    {
+        GlobalLoading,
+        Skeleton
+    }
+
     public class MainViewModel : BaseViewModel
     {
         private object _currentViewModel;
@@ -28,15 +34,20 @@ namespace FulbankApp.ViewModels
         {
             // Initialisation
             CurrentViewModel = new HomeViewModel();
-            NavigateCommand = new RelayCommand<string>(async (p) => await Navigate(p));
+            NavigateCommand = new RelayCommand<string>(async (p) => await Navigate(p, NavigationPresentation.GlobalLoading));
         }
 
-        public async Task Navigate(string pageKey)
+        public async Task Navigate(string pageKey, NavigationPresentation presentation = NavigationPresentation.GlobalLoading)
         {
-            if (string.IsNullOrEmpty(pageKey)) return;
+            if (string.IsNullOrWhiteSpace(pageKey)) return;
 
-            IsLoading = true;
-            await Task.Delay(100); // Laisser l'UI afficher le loader
+            bool useGlobalLoader = presentation == NavigationPresentation.GlobalLoading;
+
+            if (useGlobalLoader)
+            {
+                IsLoading = true;
+                await Task.Delay(100); // Laisser l'UI afficher le loader
+            }
 
             try
             {
@@ -46,24 +57,27 @@ namespace FulbankApp.ViewModels
                     // Simulation de chargement
                     System.Threading.Thread.Sleep(1000);
 
-                    switch (pageKey)
+                    return pageKey switch
                     {
-                        case "Home": return new HomeViewModel();
-                        case "Wallet": return new WalletViewModel();
-                        case "BankAccounts": return new BankAccountViewModel();
-                        case "Transfer": return new TransferViewModel();
-                        case "Convert": return new ConvertViewModel();
-                        case "Beneficiaries": return new BeneficiariesViewModel();
-                        case "Settings": return new SettingsViewModel();
-                        case "Login": return new LoginViewModel();
-                        default: return null;
-                    }
+                        "Home" => new HomeViewModel(),
+                        "Wallet" => new WalletViewModel(),
+                        "BankAccounts" => new BankAccountViewModel(),
+                        "Transfer" => new TransferViewModel(),
+                        "Convert" => new ConvertViewModel(),
+                        "Beneficiaries" => new BeneficiariesViewModel(),
+                        "Settings" => new SettingsViewModel(),
+                        "Login" => new LoginViewModel(),
+                        _ => null
+                    };
                 });
 
                 // Retour sur le thread UI
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (nextView != null) CurrentViewModel = nextView;
+                    if (nextView != null)
+                    {
+                        CurrentViewModel = nextView;
+                    }
                 });
             }
             catch (Exception ex)
@@ -72,8 +86,11 @@ namespace FulbankApp.ViewModels
             }
             finally
             {
-                await Task.Delay(200);
-                IsLoading = false;
+                if (useGlobalLoader)
+                {
+                    await Task.Delay(200);
+                    IsLoading = false;
+                }
             }
         }
     }
