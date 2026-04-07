@@ -1,0 +1,66 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:v="clr-namespace:FulbankApp.View"
+                    xmlns:vm="clr-namespace:FulbankApp.ViewModels">
+
+    <!--
+        Les erreurs XDG0008 indiquent que les types ViewModel et View référencés n'existent pas dans les espaces de noms spécifiés.
+        Pour corriger ces erreurs, assurez-vous que :
+        1. Les classes suivantes existent dans votre projet :
+            - FulbankApp.ViewModels.BankAccountViewModel
+            - FulbankApp.ViewModels.BeneficiariesViewModel
+            - FulbankApp.ViewModels.ConvertViewModel
+            - FulbankApp.ViewModels.HomeViewModel
+            - FulbankApp.ViewModels.LoginViewModel
+            - FulbankApp.ViewModels.TransferViewModel
+            - FulbankApp.ViewModels.WalletViewModel
+            - FulbankApp.ViewModels.SettingsViewModel
+            - FulbankApp.View.BankAccountView
+            - FulbankApp.View.BeneficiariesView
+            - FulbankApp.View.ConvertView
+            - FulbankApp.View.HomeView
+            - FulbankApp.View.LoginView
+            - FulbankApp.View.TransferView
+            - FulbankApp.View.WalletView
+            - FulbankApp.View.SettingsView
+        2. Les fichiers correspondants (.cs pour ViewModels, .xaml/.xaml.cs pour Views) existent dans les bons dossiers/namespaces.
+        3. Les namespaces dans les fichiers .cs et .xaml correspondent exactement à ceux utilisés ici.
+        4. Les projets/références sont bien inclus dans la solution.
+
+        Si ces classes n'existent pas, vous devez les créer dans les bons espaces de noms.
+        Sinon, corrigez les namespaces dans ce fichier ou dans vos classes pour qu'ils correspondent.
+    -->
+
+    <DataTemplate DataType="{x:Type vm:BankAccountViewModel}">
+        <v:BankAccountView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:BeneficiariesViewModel}">
+        <v:BeneficiariesView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:ConvertViewModel}">
+        <v:ConvertView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+        <v:HomeView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+        <v:LoginView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:TransferViewModel}">
+        <v:TransferView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:WalletViewModel}">
+        <v:WalletView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+        <v:SettingsView/>
+    </DataTemplate>
+
+</ResourceDictionary>
